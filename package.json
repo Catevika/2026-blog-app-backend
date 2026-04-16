@@ -1,0 +1,59 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "Blog backend with Markdown, Pexels, socials, and PDF generation",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "server.ts",
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "blog",
+    "markdown",
+    "pdf",
+    "pexels",
+    "photos",
+    "posts"
+  ],
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:ui": "vitest --ui",
+    "coverage": "vitest run --coverage",
+    "start": "NODE_ENV=production tsx src/server.ts",
+    "build": "tsc",
+    "preview": "NODE_ENV=production node dist/server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.3.2",
+    "jsonwebtoken": "^9.0.3",
+    "mongodb": "^7.1.1",
+    "mongoose": "^9.4.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.4.12",
+    "@express-rate-limit/tsconfig": "^1.0.2",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^25.6.0",
+    "@types/supertest": "^7.2.0",
+    "@vitest/coverage-v8": "^4.1.4",
+    "@vitest/ui": "^4.1.4",
+    "jsdom": "^29.0.2",
+    "mongodb-memory-server": "^11.0.1",
+    "supertest": "^7.2.2",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.4"
+  }
+}

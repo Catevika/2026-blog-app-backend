@@ -1,7 +1,7 @@
 import "dotenv/config";
 import type { RateLimitRequestHandler } from "express-rate-limit";
 import { rateLimit } from "express-rate-limit";
-import { ENV, RATE_LIMIT_MS } from "../config";
+import { ENV, RATE_LIMIT_MS } from "../config/index.js";
 
 export function createAuthLimiter(): RateLimitRequestHandler {
 	return rateLimit({

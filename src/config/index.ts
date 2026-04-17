@@ -1,5 +1,5 @@
-import { AUTH } from "./auth";
-import { ENV } from "./env";
-import { RATE_LIMIT_MS } from "./rate-limit";
+import { AUTH } from "./auth.js";
+import { ENV } from "./env.js";
+import { RATE_LIMIT_MS } from "./rate-limit.js";
 
 export { AUTH, ENV, RATE_LIMIT_MS };

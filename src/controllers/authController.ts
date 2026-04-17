@@ -5,11 +5,11 @@ import {
 	ACCESS_TOKEN_MAX_AGE,
 	REFRESH_COOKIE_NAME,
 	REFRESH_TOKEN_MAX_AGE,
-} from "../config/authConfig";
-import { RefreshToken } from "../models/RefreshToken";
-import { User } from "../models/User";
-import * as tokenService from "../services/tokenService";
-import { wrapAsync } from "../utils/asyncWrap";
+} from "../config/authConfig.js";
+import { RefreshToken } from "../models/RefreshToken.js";
+import { User } from "../models/User.js";
+import * as tokenService from "../services/tokenService.js";
+import { wrapAsync } from "../utils/asyncWrap.js";
 
 export const signup = wrapAsync(async (req: Request, res: Response) => {
 	const { email, password, name } = req.body;

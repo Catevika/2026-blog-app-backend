@@ -1,6 +1,6 @@
 import type { CookieOptions } from "express";
-import { AUTH as AUTH_RAW } from "./auth";
-import { ENV } from "./env";
+import { AUTH as AUTH_RAW } from "./auth.js";
+import { ENV } from "./env.js";
 
 /** Helper to assert required string values at startup */
 function required(name: string, value?: string): string {

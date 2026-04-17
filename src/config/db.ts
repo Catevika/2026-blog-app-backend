@@ -1,6 +1,6 @@
 import "dotenv/config";
 import mongoose from "mongoose";
-import { ENV } from "./env";
+import { ENV } from "./env.js";
 
 const MONGO_URI = ENV.MONGO_URI ?? "";
 

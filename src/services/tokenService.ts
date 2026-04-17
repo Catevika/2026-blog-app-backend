@@ -10,9 +10,9 @@ import {
 	REFRESH_TOKEN_EXPIRES_IN,
 	REFRESH_TOKEN_MAX_AGE,
 	REFRESH_TOKEN_SECRET,
-} from "../config/authConfig";
-import { RefreshToken } from "../models/RefreshToken";
-import type { JwtPayload } from "../types";
+} from "../config/authConfig.js";
+import { RefreshToken } from "../models/RefreshToken.js";
+import type { JwtPayload } from "../types/index.js";
 
 // Re-export cookieBase so controllers can use tokenService.cookieBase
 export const cookieBase = baseCookieOptions;

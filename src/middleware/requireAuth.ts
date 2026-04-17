@@ -1,9 +1,8 @@
-// src/middleware/requireAuth.ts
 import type { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import * as cfg from "../config/authConfig";
-import * as tokenService from "../services/tokenService";
-import type { JwtPayload } from "../types";
+import * as cfg from "../config/authConfig.js";
+import * as tokenService from "../services/tokenService.js";
+import type { JwtPayload } from "../types/index.js";
 
 /**
  * authenticateToken (optional)

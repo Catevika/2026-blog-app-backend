@@ -1,8 +1,8 @@
 // src/routes/auth.route.ts
 import { Router } from "express";
-import * as authController from "../controllers/authController";
-import { createAuthLimiter } from "../middleware/rate-limit";
-import { authenticateToken, requireAuth } from "../middleware/requireAuth";
+import * as authController from "../controllers/authController.js";
+import { createAuthLimiter } from "../middleware/rate-limit.js";
+import { authenticateToken, requireAuth } from "../middleware/requireAuth.js";
 
 const router = Router();
 

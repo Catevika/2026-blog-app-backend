@@ -3,10 +3,10 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
 import rateLimit from "express-rate-limit";
-import { connectDB } from "./config/db";
-import { ENV } from "./config/env";
-import { RATE_LIMIT_MS } from "./config/rate-limit";
-import authRouter from "./routes/auth.route";
+import { connectDB } from "./config/db.js";
+import { ENV } from "./config/env.js";
+import { RATE_LIMIT_MS } from "./config/rate-limit.js";
+import authRouter from "./routes/auth.route.js";
 
 const app = express();
 

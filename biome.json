@@ -1,48 +1,46 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.4.12/schema.json",
-  "root": true,
-  "files": {
-    "includes": [
-      "backend/**/*.{js,ts,jsx,tsx}"
-    ]
-  },
-  "formatter": {
+	"$schema": "https://biomejs.dev/schemas/2.4.12/schema.json",
+	"root": true,
+	"files": {
+		"includes": ["src/**/*.{js,ts}", "tests/**/*.{js,ts}"]
+	},
+	"formatter": {
 		"indentStyle": "tab",
-    "enabled": true,
-    "formatWithErrors": true,
-    "lineWidth": 100,
+		"enabled": true,
+		"formatWithErrors": true,
+		"lineWidth": 100,
 		"bracketSpacing": true
 	},
-  "linter": {
-    "enabled": true,
-    "rules": {
-      "recommended": true,
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": true,
 			"style": {
-        "noMagicNumbers": "off",
+				"noMagicNumbers": "off",
 				"useTemplate": "off",
 				"useImportType": {
 					"level": "error",
-          "options": {
-            "style": "separatedType"
-          }
-        }    
+					"options": {
+						"style": "separatedType"
+					}
+				}
 			}
-    }
-  },
-  "assist": {
-    "actions": {
-      "source": {
-        "organizeImports": "on"
-      }
-    }
-  },
-  "javascript": {
-    "formatter": {
+		}
+	},
+	"assist": {
+		"actions": {
+			"source": {
+				"organizeImports": "on"
+			}
+		}
+	},
+	"javascript": {
+		"formatter": {
 			"bracketSpacing": true,
-      "jsxQuoteStyle": "double",
-      "quoteStyle": "double",
-      "semicolons": "always",
+			"jsxQuoteStyle": "double",
+			"quoteStyle": "double",
+			"semicolons": "always",
 			"trailingCommas": "all"
-    }
-  }
+		}
+	}
 }

@@ -1,9 +1,9 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "Blog backend with Markdown, Pexels, socials, and PDF generation",
+  "description": "Blog backend with Markdown, Pexels, and PDF generation",
   "license": "ISC",
-  "author": "",
+  "author": "Catevika Web Dev",
   "type": "module",
   "main": "server.ts",
   "engines": {
@@ -25,7 +25,9 @@
     "coverage": "vitest run --coverage",
     "start": "NODE_ENV=production tsx src/server.ts",
     "build": "tsc",
-    "preview": "NODE_ENV=production node dist/server.js"
+    "preview": "NODE_ENV=production node dist/server.js",
+    "biome-lint": "biome check",
+    "biome-format": "biome format --write"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -53,7 +55,7 @@
     "mongodb-memory-server": "^11.0.1",
     "supertest": "^7.2.2",
     "tsx": "^4.21.0",
-    "typescript": "^6.0.2",
+    "typescript": "^6.0.3",
     "vitest": "^4.1.4"
   }
 }

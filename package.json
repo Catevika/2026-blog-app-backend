@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "Blog backend with Markdown, Pexels, and PDF generation",
+  "description": "Blog with Markdown Editor, Pexels photos, PDF generation - Backend",
   "license": "ISC",
   "author": "Catevika Web Dev",
   "type": "module",
@@ -19,10 +19,20 @@
   ],
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "test": "vitest",
-    "test:watch": "vitest --watch",
-    "test:ui": "vitest --ui",
-    "coverage": "vitest run --coverage",
+    "test": "npm run test:unit && npm run test:integration",
+
+    "test:unit": "vitest --config vitest.unit.config.ts",
+    "test:unit:watch": "vitest --config vitest.unit.config.ts --watch",
+    "test:unit:ui": "vitest --config vitest.unit.config.ts --ui",
+    "test:unit:file": "vitest --config vitest.unit.config.ts",
+
+    "test:integration": "vitest --config vitest.integration.config.ts",
+    "test:integration:watch": "vitest --config vitest.integration.config.ts --watch",
+    "test:integration:ui": "vitest --config vitest.integration.config.ts --ui",
+    "test:integration:file": "vitest --config vitest.integration.config.ts",
+
+    "coverage": "vitest run --config vitest.unit.config.ts --coverage && vitest run --config vitest.integration.config.ts --coverage",
+    
     "start": "NODE_ENV=production tsx src/server.ts",
     "build": "tsc",
     "preview": "NODE_ENV=production node dist/server.js",

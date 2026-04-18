@@ -9,7 +9,7 @@ import {
 import { RefreshToken } from "../models/RefreshToken.js";
 import { User } from "../models/User.js";
 import * as tokenService from "../services/tokenService.js";
-import { wrapAsync } from "../utils/asyncWrap.js";
+import { wrapAsync } from "../utils/wrapAsync.js";
 
 export const signup = wrapAsync(async (req: Request, res: Response) => {
 	const { email, password, name } = req.body;
@@ -20,7 +20,7 @@ export const signup = wrapAsync(async (req: Request, res: Response) => {
 
 	const existing = await User.findOne({ email }).lean().exec();
 	if (existing) {
-		return res.status(409).json({ message: "Email already in use" });
+		return res.status(409).json({ message: "Email already exists" });
 	}
 
 	const passwordHash = await bcrypt.hash(password, 12);

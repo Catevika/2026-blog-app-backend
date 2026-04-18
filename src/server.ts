@@ -1,11 +1,11 @@
-import "dotenv/config";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import "dotenv/config";
 import express from "express";
 import rateLimit from "express-rate-limit";
-import { connectDB } from "./config/db.js";
 import { ENV } from "./config/env.js";
 import { RATE_LIMIT_MS } from "./config/rate-limit.js";
+import { startServer } from "./config/startServer.js";
 import authRouter from "./routes/auth.route.js";
 
 const app = express();
@@ -24,17 +24,8 @@ app.get("/health", (_req, res) => {
 
 app.use("/api/auth", authRouter);
 
-async function start(): Promise<void> {
-	await connectDB();
-
-	const port = Number(ENV.PORT ?? "4000");
-	app.listen(port, () => {
-		console.log(`🚀 Backend listening on http://localhost:${port}`);
-	});
-}
-
 if (ENV.NODE_ENV !== "test") {
-	start().catch((err) => {
+	startServer().catch((err) => {
 		console.error("Failed to start server:", err);
 		process.exit(1);
 	});

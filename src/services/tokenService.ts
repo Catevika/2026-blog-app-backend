@@ -61,5 +61,5 @@ export const clearTokens = async (res: Response, refreshToken?: string): Promise
 	}
 
 	res.clearCookie(ACCESS_COOKIE_NAME, { path: "/" });
-	res.clearCookie(REFRESH_COOKIE_NAME, { path: "/api/auth" });
+	res.clearCookie(REFRESH_COOKIE_NAME, { path: "/" });
 };

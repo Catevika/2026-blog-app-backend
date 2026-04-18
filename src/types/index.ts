@@ -6,6 +6,7 @@ export type AppEnv = {
 	MONGO_URI: string;
 	ACCESS_TOKEN_SECRET: string;
 	REFRESH_TOKEN_SECRET: string;
+	ROTATE_REFRESH_TOKENS: string;
 	VITEST: string;
 	TEST_RATE_LIMITER: string;
 	CORS_ORIGIN: string;
@@ -38,6 +39,4 @@ export interface IRefreshToken extends Document {
 
 export interface JwtPayload {
 	userId: string;
-	iat: number;
-	exp: number;
 }

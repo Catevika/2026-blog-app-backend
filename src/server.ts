@@ -25,10 +25,12 @@ app.get("/health", (_req, res) => {
 app.use("/api/auth", authRouter);
 
 if (ENV.NODE_ENV !== "test") {
-	startServer().catch((err) => {
-		console.error("Failed to start server:", err);
+	try {
+		startServer();
+	} catch (error) {
+		console.error("Failed to start server:", error);
 		process.exit(1);
-	});
+	}
 }
 
 export default app;

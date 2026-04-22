@@ -31,6 +31,7 @@ describe("tokenService (Unit)", () => {
 
 	it("cookieBase contains correct defaults", () => {
 		expect(tokenService.cookieBase.httpOnly).toBe(true);
+		expect(tokenService.cookieBase.secure).toBe(false);
 		expect(tokenService.cookieBase.sameSite).toBe("lax");
 	});
 });

@@ -60,6 +60,6 @@ export const clearTokens = async (res: Response, refreshToken?: string): Promise
 		await RefreshToken.findOneAndUpdate({ token: refreshToken }, { isValid: false }).exec();
 	}
 
-	res.clearCookie(ACCESS_COOKIE_NAME, { path: "/" });
-	res.clearCookie(REFRESH_COOKIE_NAME, { path: "/" });
+	res.cookie(ACCESS_COOKIE_NAME, "", { ...cookieBase, maxAge: 0, path: "/" });
+	res.cookie(REFRESH_COOKIE_NAME, "", { ...cookieBase, maxAge: 0, path: "/" });
 };

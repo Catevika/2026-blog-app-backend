@@ -6,7 +6,7 @@ import { ENV, RATE_LIMIT_MS } from "../config/index.js";
 export function createAuthLimiter(): RateLimitRequestHandler {
 	return rateLimit({
 		windowMs: RATE_LIMIT_MS, // 15 minutes
-		max: 5,
+		limit: 5,
 		message: { error: "Too many login attempts, try again later" },
 		standardHeaders: true,
 		legacyHeaders: false,

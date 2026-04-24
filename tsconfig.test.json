@@ -1,0 +1,9 @@
+// tsconfig.test.json
+{
+	"extends": "./tsconfig.json",
+	"include": ["src/**/*", "tests/**/*", "**/*.test.ts"],
+	// Looser settings for mocks
+	"compilerOptions": {
+		"strict": false
+	}
+}

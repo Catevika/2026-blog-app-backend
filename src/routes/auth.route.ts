@@ -1,4 +1,3 @@
-// src/routes/auth.route.ts
 import { Router } from "express";
 import * as authController from "../controllers/authController.js";
 import { createAuthLimiter } from "../middleware/rate-limit.js";

@@ -19,16 +19,15 @@
 	],
 	"scripts": {
 		"dev": "tsx watch src/server.ts",
-		"test": "npm run test:unit && npm run test:integration",
-		"test:unit": "vitest --config vitest.unit.config.ts",
-		"test:unit:watch": "vitest --config vitest.unit.config.ts --watch",
-		"test:unit:ui": "vitest --config vitest.unit.config.ts --ui",
-		"test:unit:file": "vitest --config vitest.unit.config.ts",
-		"test:integration": "vitest --config vitest.integration.config.ts",
-		"test:integration:watch": "vitest --config vitest.integration.config.ts --watch",
-		"test:integration:ui": "vitest --config vitest.integration.config.ts --ui",
-		"test:integration:file": "vitest --config vitest.integration.config.ts",
-		"coverage": "vitest run --config vitest.unit.config.ts --coverage && vitest run --config vitest.integration.config.ts --coverage",
+		"test:unit": "vitest run --config vitest.unit.config.ts",
+		"test:integration": "vitest run --config vitest.integration.config.ts",
+		"test:all": "npm run test:unit && npm run test:integration",
+		"test:coverage:unit": "vitest run --config vitest.unit.config.ts --coverage",
+		"test:coverage:integration": "vitest run --config vitest.integration.config.ts --coverage",
+		"coverage:merge": "npx vitest-coverage-merge coverage/unit coverage/integration -o coverage/merged",
+		"coverage:view": "npm run coverage:merge && open coverage/merged/index.html",
+		"test:watch:unit": "vitest --config vitest.unit.config.ts --watch",
+		"test:watch:integration": "vitest --config vitest.integration.config.ts --watch",
 		"start": "NODE_ENV=production tsx src/server.ts",
 		"build": "tsc",
 		"preview": "NODE_ENV=production node dist/server.js",
@@ -47,7 +46,7 @@
 		"mongoose": "^9.5.0"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "2.4.12",
+		"@biomejs/biome": "2.4.13",
 		"@express-rate-limit/tsconfig": "^1.0.2",
 		"@types/cookie-parser": "^1.4.10",
 		"@types/cors": "^2.8.19",
@@ -62,6 +61,7 @@
 		"supertest": "^7.2.2",
 		"tsx": "^4.21.0",
 		"typescript": "^6.0.3",
-		"vitest": "^4.1.5"
+		"vitest": "^4.1.5",
+		"vitest-coverage-merge": "^0.2.0"
 	}
 }

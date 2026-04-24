@@ -36,7 +36,8 @@ describe("createAuthLimiter (Integration)", () => {
 
 		expect(blocked.status).toBe(429);
 		expect(blocked.body).toEqual({
-			error: "Too many login attempts, try again later",
+			error: "Too many signup/login attempts.",
+			retryAfter: 900,
 		});
 	});
 });

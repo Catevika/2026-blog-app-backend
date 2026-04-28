@@ -1,4 +1,4 @@
-import type { Document } from "mongoose";
+import type { Document, Types, Model } from "mongoose";
 
 export type AppEnv = {
 	NODE_ENV: "development" | "production" | "test" | string;
@@ -13,24 +13,10 @@ export type AppEnv = {
 };
 
 //------------------------------------------------------------
-// User
+// TOKEN
 //------------------------------------------------------------
-
-export interface IUser extends Document {
-	id: string;
-	name: string;
-	email: string;
-	passwordHash: string;
-	role: "user" | "admin";
-	refreshToken?: string;
-}
-
-//------------------------------------------------------------
-// Token
-//------------------------------------------------------------
-
-export interface IRefreshToken extends Document {
-	id: string;
+export interface IRefreshToken {
+	_id: Types.ObjectId;
 	token: string;
 	userId: string;
 	expiresAt: Date;
@@ -40,3 +26,177 @@ export interface IRefreshToken extends Document {
 export interface JwtPayload {
 	userId: string;
 }
+
+//------------------------------------------------------------
+// USER - IUser
+//------------------------------------------------------------
+export interface IUser {
+	_id: Types.ObjectId;
+	name: string;
+	email: string;
+	passwordHash: string;
+	role: "user" | "admin";
+	refreshToken?: string;
+}
+
+// ------------------------------------------------------------
+// USER - IUserRef
+// ------------------------------------------------------------
+export interface IUserRef {
+	_id: Types.ObjectId;
+	name: string;
+	email: string;
+}
+
+//------------------------------------------------------------
+// POST - IPost
+//------------------------------------------------------------
+export interface IPost extends Document {
+	_id: Types.ObjectId;
+	title: string;
+	slug: string;
+	locked: boolean;
+	content: string;
+	author: Types.ObjectId | IUserRef;
+	status: "draft" | "published";
+	liked: boolean | false;
+	likedBy: Types.ObjectId[] | [];
+	likeCount: number | 0;
+	deleted: boolean;
+	createdAt: Date;
+	updatedAt: Date;
+}
+
+export interface PostModelStatics {
+	computeSuggestion(base: string): Promise<string>;
+}
+
+export type PostModel = Model<IPost> & PostModelStatics;
+
+//------------------------------------------------------------
+// POST - PostBody / CREATE POST
+//------------------------------------------------------------
+export interface PostBody {
+	title: string;
+	slug: string;
+	locked?: boolean;
+	content: string;
+	status: "draft" | "published";
+	errors?: Record<string, string>;
+}
+
+//------------------------------------------------------------
+// POST - PostQuery
+//-----------------------------------------------------------
+export type PostResponse = SerializedPost | { error: string };
+export type PostFilter = {
+	status?: "draft" | "published";
+	deleted: boolean;
+};
+export type PostSearchFilter = PostFilter & {
+	$or: [
+		{ title: { $regex: string; $options: "i" } },
+		{ content: { $regex: string; $options: "i" } },
+	];
+};
+
+export interface PostQuery {
+	page?: string;
+	search?: string;
+}
+
+export interface PaginatedPost {
+	docs: SerializedPost[];
+	pagination: {
+		totalDocs: number;
+		limit: number;
+		page: number;
+		totalPages: number;
+		hasNextPage: boolean;
+		hasPrevPage: boolean;
+		nextPage: number | null;
+		prevPage: number | null;
+	};
+}
+
+export type PostsResponse = PaginatedPost | { error: string };
+
+export interface CheckSlugQuery {
+	slug?: string;
+	excludeId?: string;
+}
+
+export type CheckSlugResponse = {
+	available: boolean;
+	suggestion: string | null;
+};
+
+// -----------------------------
+// SLUG - Duplicate error type guard
+// -----------------------------
+export type DuplicateError = {
+	code?: number;
+	keyPattern?: Record<string, unknown>;
+};
+
+// -----------------------------
+// POST - Populated Post
+// -----------------------------
+export type PopulatedPost = IPost & {
+	author: IUserRef;
+};
+
+// ------------------------------------------------------------
+// SERIALIZED POST - Sent to Client
+// ------------------------------------------------------------
+export type SerializedPost = {
+	id: string;
+	title: string;
+	slug: string;
+	locked: boolean;
+	content: string;
+	author: { id: string; name: string; email: string };
+	status: "draft" | "published";
+	deleted: boolean;
+	likeCount: number;
+	liked: boolean;
+	likedBy: string[];
+	createdAt?: Date;
+	updatedAt?: Date;
+};
+
+export type PostCreateResponse =
+	| SerializedPost
+	| {
+			message: string;
+			errors?: Record<string, string>;
+	  };
+
+export type PostUpdateResponse =
+	| SerializedPost
+	| {
+			message: string;
+			errors?: Record<string, string>;
+	  }
+	| { error: string };
+
+export type PostDeleteResponse =
+	| {
+			docs: SerializedPost[];
+			pagination: {
+				totalDocs: number;
+				limit: number;
+				page: number;
+				totalPages: number;
+				hasNextPage: boolean;
+				hasPrevPage: boolean;
+				nextPage: number | null;
+				prevPage: number | null;
+			};
+	  }
+	| { message: string };
+
+export type PostRestoreResponse =
+	| SerializedPost
+	| { error: string }
+	| { message: string };

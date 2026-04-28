@@ -16,10 +16,11 @@
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
 		"exactOptionalPropertyTypes": true,
+		"strictNullChecks": true,
 		"noFallthroughCasesInSwitch": true,
 
 		"outDir": "./dist",
-		"rootDir": "./src",
+		"rootDir": ".",
 		"removeComments": true,
 		"declaration": true,
 		"declarationMap": true,
@@ -27,19 +28,11 @@
 		"inlineSources": true,
 
 		"skipLibCheck": true,
-		"resolveJsonModule": true
+		"resolveJsonModule": true,
+		"types": ["node"]
 	},
 	"ts-node": {
 		"esm": true,
 		"experimentalSpecifierResolution": "node"
-	},
-	"include": ["src/**/*"],
-	"exclude": [
-		"node_modules",
-		"dist",
-		"**/*.test.ts",
-		"**/*.spec.ts",
-		"**/*.js",
-		"vitest.*.config.*.ts"
-	]
+	}
 }

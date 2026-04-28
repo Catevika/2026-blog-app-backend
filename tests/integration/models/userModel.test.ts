@@ -19,17 +19,21 @@ describe("User model", () => {
 			throw new Error("Expected validation error but none was thrown");
 		} catch (err: unknown) {
 			expect(isValidationError(err)).toBe(true);
-			expect(err && isValidationError(err) && err.errors.email).toBeDefined();
+			expect(
+				err && isValidationError(err) && err.errors["email"]
+			).toBeDefined();
 		}
 	});
 
 	it("requires passwordHash", async () => {
 		try {
-			await User.create({ email: "x@test.com", name: "Test" });
+			await User.create({ name: "Test", email: "x@test.com" });
 			throw new Error("Expected validation error but none was thrown");
 		} catch (err: unknown) {
 			expect(isValidationError(err)).toBe(true);
-			expect(err && isValidationError(err) && err.errors.passwordHash).toBeDefined();
+			expect(
+				err && isValidationError(err) && err.errors["passwordHash"]
+			).toBeDefined();
 		}
 	});
 

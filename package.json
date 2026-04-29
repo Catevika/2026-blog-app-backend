@@ -35,6 +35,7 @@
 		"biome-format": "biome format --write"
 	},
 	"dependencies": {
+		"@fallow-cli/fallow-node": "^2.54.2",
 		"bcryptjs": "^3.0.3",
 		"cookie-parser": "^1.4.7",
 		"cors": "^2.8.6",
@@ -43,7 +44,7 @@
 		"express-rate-limit": "^8.4.1",
 		"jsonwebtoken": "^9.0.3",
 		"mongodb": "^7.2.0",
-		"mongoose": "^9.5.0"
+		"mongoose": "^9.6.0"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.4.13",
@@ -56,6 +57,7 @@
 		"@types/supertest": "^7.2.0",
 		"@vitest/coverage-v8": "^4.1.5",
 		"@vitest/ui": "^4.1.5",
+		"fallow": "^2.54.2",
 		"jsdom": "^29.1.0",
 		"mongodb-memory-server": "^11.0.1",
 		"supertest": "^7.2.2",

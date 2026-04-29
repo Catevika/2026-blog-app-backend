@@ -10,3 +10,4 @@ dist/
 
 /types-generated/*
 TODO.md
+.fallow/*

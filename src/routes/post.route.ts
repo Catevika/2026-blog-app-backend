@@ -309,7 +309,7 @@ router.get(
 			const page = Math.max(1, Number(req.query.page ?? 1));
 			const skip = (page - 1) * FEED_PER_PAGE;
 
-			const filter = { status: "published", deleted: false };
+			const filter = { status: "published" as const, deleted: false };
 
 			const [posts, totalDocsRaw] = await Promise.all([
 				Post.find(filter)

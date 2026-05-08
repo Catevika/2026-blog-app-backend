@@ -10,6 +10,7 @@ import { RefreshToken } from "../models/RefreshToken.js";
 import { User } from "../models/User.js";
 import * as tokenService from "../services/tokenService.js";
 import { wrapAsync } from "../utils/wrapAsync.js";
+import { serializeUser } from "../utils/serializeUser.js";
 
 export const signup = wrapAsync(async (req: Request, res: Response) => {
 	const { email, password, name } = req.body;
@@ -29,14 +30,7 @@ export const signup = wrapAsync(async (req: Request, res: Response) => {
 
 	await tokenService.setTokens(res, user._id.toString());
 
-	return res.status(201).json({
-		user: {
-			id: user._id.toString(),
-			email: user.email,
-			name: user.name,
-			role: user.role,
-		},
-	});
+	return res.status(201).json({ user: { user: serializeUser(user) } });
 });
 
 export const login = wrapAsync(async (req: Request, res: Response) => {
@@ -58,14 +52,7 @@ export const login = wrapAsync(async (req: Request, res: Response) => {
 
 	await tokenService.setTokens(res, user._id.toString());
 
-	return res.json({
-		user: {
-			id: user._id.toString(),
-			email: user.email,
-			name: user.name,
-			role: user.role,
-		},
-	});
+	return res.json({ user: serializeUser(user) });
 });
 
 export const logout = wrapAsync(async (req: Request, res: Response) => {
@@ -120,19 +107,15 @@ export const refresh = wrapAsync(async (req: Request, res: Response) => {
 		path: "/",
 	});
 
-	const user = await User.findById(userId).select("email name role").lean().exec();
+	const user = await User.findById(userId)
+		.select("email name role")
+		.lean()
+		.exec();
 	if (!user) {
 		return res.status(401).json({ message: "User not found" });
 	}
 
-	return res.json({
-		user: {
-			id: user._id.toString(),
-			email: user.email,
-			name: user.name,
-			role: user.role,
-		},
-	});
+	return res.json({ user: serializeUser(user) });
 });
 
 export const verify = wrapAsync(async (req: Request, res: Response) => {
@@ -142,20 +125,16 @@ export const verify = wrapAsync(async (req: Request, res: Response) => {
 		return res.status(401).json({ message: "Unauthorized" });
 	}
 
-	const user = await User.findById(userId).select("email name role").lean().exec();
+	const user = await User.findById(userId)
+		.select("email name role")
+		.lean()
+		.exec();
 
 	if (!user) {
 		return res.status(401).json({ message: "User not found" });
 	}
 
-	return res.json({
-		user: {
-			id: user._id.toString(),
-			email: user.email,
-			name: user.name,
-			role: user.role,
-		},
-	});
+	return res.json({ user: serializeUser(user) });
 });
 
 export const me = wrapAsync(async (req: Request, res: Response) => {
@@ -171,5 +150,5 @@ export const me = wrapAsync(async (req: Request, res: Response) => {
 		return res.status(401).json({ message: "Unauthorized" });
 	}
 
-	return res.json({ user });
+	return res.json({ user: serializeUser(user) });
 });

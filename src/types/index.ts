@@ -37,6 +37,8 @@ export interface IUser {
 	passwordHash: string;
 	role: "user" | "admin";
 	refreshToken?: string;
+	createdAt: Date;
+	updatedAt: Date;
 }
 
 // ------------------------------------------------------------
@@ -46,6 +48,19 @@ export interface IUserRef {
 	_id: Types.ObjectId;
 	name: string;
 	email: string;
+}
+
+// ------------------------------------------------------------
+// USER - SerializedUser
+// ------------------------------------------------------------
+
+export interface SerializedUser {
+	id: string;
+	name: string;
+	email: string;
+	role: "user" | "admin";
+	createdAt: Date;
+	updatedAt: Date;
 }
 
 //------------------------------------------------------------

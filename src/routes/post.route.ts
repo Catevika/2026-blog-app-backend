@@ -55,7 +55,7 @@ function isDuplicateError(error: unknown): error is DuplicateError {
 	 POST /api/posts (create)
 ------------------------------------------------------------ */
 router.post(
-	"/",
+	"/new",
 	requireAuth,
 	async (
 		req: Request<unknown, PostCreateResponse, PostBody>,

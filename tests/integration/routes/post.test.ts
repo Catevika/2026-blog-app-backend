@@ -9,7 +9,7 @@ import { Post } from "../../../src/models/Post.js";
 describe("Posts integration tests", () => {
 	// test setup clears DB via tests/setup hooks
 
-	it("POST /api/posts creates a post and returns serialized post", async () => {
+	it("POST /api/posts/new creates a post and returns serialized post", async () => {
 		const { agent, user } = await loginTestUser();
 
 		const payload = {
@@ -20,7 +20,7 @@ describe("Posts integration tests", () => {
 			status: "published",
 		};
 
-		const res = await agent.post("/api/posts").send(payload).expect(201);
+		const res = await agent.post("/api/posts/new").send(payload).expect(201);
 		expect(res.body).toHaveProperty("id");
 		expect(res.body.title).toBe(payload.title);
 		expect(res.body.slug).toBe(payload.slug);

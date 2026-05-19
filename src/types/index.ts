@@ -105,17 +105,19 @@ export interface PostBody {
 //-----------------------------------------------------------
 export type PostResponse = SerializedPost | { error: string };
 export type PostFilter = {
+	$or?: (
+		| { title: { $regex: string; $options: string }; content?: never }
+		| { content: { $regex: string; $options: string }; title?: never }
+	)[];
+	author?: string;
 	status?: "draft" | "published";
-	deleted: boolean;
-};
-export type PostSearchFilter = PostFilter & {
-	$or: [
-		{ title: { $regex: string; $options: "i" } },
-		{ content: { $regex: string; $options: "i" } },
-	];
+	deleted?: boolean;
 };
 
 export interface PostQuery {
+	status?: "draft" | "published";
+	deleted?: string;
+	author?: string;
 	page?: string;
 	search?: string;
 }

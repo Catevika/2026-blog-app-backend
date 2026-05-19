@@ -24,7 +24,6 @@ import type {
 	PostQuery,
 	PostResponse,
 	PostRestoreResponse,
-	PostSearchFilter,
 	PostsResponse,
 	PostUpdateResponse,
 	SerializedPost,
@@ -84,7 +83,7 @@ router.post(
 			const exists = await Post.findOne({
 				slug: finalSlug,
 				deleted: false,
-			} as PostFilter)
+			} as unknown as PostFilter)
 				.lean()
 				.exec();
 
@@ -204,24 +203,40 @@ router.get(
 	) => {
 		try {
 			const page = Math.max(1, Number(req.query.page ?? 1));
+			const skip = (page - 1) * POSTS_PER_PAGE;
+
+			const filter: PostFilter = {};
+
+			// status filter
+			if (typeof req.query.status === "string") {
+				filter.status = req.query.status;
+			}
+
+			// deleted filter
+			if (typeof req.query.deleted === "string") {
+				filter.deleted = req.query.deleted === "true";
+			}
+
+			// author filter
+			if (typeof req.query.author === "string" && req.query.author.trim()) {
+				filter.author = req.query.author;
+			}
+
+			// search filter
 			const search =
 				typeof req.query.search === "string" && req.query.search.trim() ?
 					req.query.search.trim()
 				:	undefined;
 
-			/* --------------------------------------------
-         SEARCH MODE - sorted by UpdatedAt
-      -------------------------------------------- */
 			if (search) {
-				const filter: PostSearchFilter = {
-					status: "published",
-					deleted: false,
-					$or: [
-						{ title: { $regex: search, $options: "i" } },
-						{ content: { $regex: search, $options: "i" } },
-					],
-				};
+				filter.$or = [
+					{ title: { $regex: search, $options: "i" } },
+					{ content: { $regex: search, $options: "i" } },
+				];
+			}
 
+			// SEARCH MODE — apply SEARCH_LIMIT
+			if (search) {
 				const allResults = (await Post.find(filter)
 					.sort({ updatedAt: -1 })
 					.limit(SEARCH_LIMIT)
@@ -231,9 +246,8 @@ router.get(
 
 				const totalDocs = allResults.length;
 				const totalPages = Math.max(1, Math.ceil(totalDocs / POSTS_PER_PAGE));
-				const start = (page - 1) * POSTS_PER_PAGE;
 				const docs = allResults
-					.slice(start, start + POSTS_PER_PAGE)
+					.slice(skip, skip + POSTS_PER_PAGE)
 					.map(serializePost);
 
 				return res.json({
@@ -251,15 +265,7 @@ router.get(
 				});
 			}
 
-			/* --------------------------------------------
-         NORMAL LIST (no search) - sorted by UpdatedAt
-      -------------------------------------------- */
-			const filter: PostFilter = {
-				status: "published",
-				deleted: false,
-			};
-			const skip = (page - 1) * POSTS_PER_PAGE;
-
+			// NORMAL MODE — apply POSTS_TOTAL_LIMIT
 			const [rows, totalDocsRaw] = await Promise.all([
 				Post.find(filter)
 					.sort({ updatedAt: -1 })
@@ -297,7 +303,7 @@ router.get(
 );
 
 /* ------------------------------------------------------------
-	 GET /api/posts/feed (Feed) -  - sorted by CreatedAt
+	 GET /api/posts/feed (Feed) - sorted by CreatedAt
 ------------------------------------------------------------ */
 router.get(
 	"/feed",

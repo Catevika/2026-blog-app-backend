@@ -186,6 +186,7 @@ export type PostCreateResponse =
 	| SerializedPost
 	| {
 			message: string;
+			suggestion?: string;
 			errors?: Record<string, string>;
 	  };
 
@@ -193,6 +194,7 @@ export type PostUpdateResponse =
 	| SerializedPost
 	| {
 			message: string;
+			suggestion?: string;
 			errors?: Record<string, string>;
 	  }
 	| { error: string };

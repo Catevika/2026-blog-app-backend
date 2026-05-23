@@ -88,9 +88,12 @@ router.post(
 				.exec();
 
 			if (exists) {
+				const suggestion = await Post.computeSuggestion(finalSlug);
+
 				return res.status(409).json({
 					message: "Slug already exists",
 					errors: { slug: "Slug already exists" },
+					suggestion,
 				});
 			}
 
@@ -113,7 +116,6 @@ router.post(
 				.exec()) as PopulatedPost | null;
 
 			if (!populated) {
-				// unlikely, but handle defensively
 				return res
 					.status(500)
 					.json({ message: "Unable to fetch created post" });
@@ -137,8 +139,6 @@ router.post(
 /* ------------------------------------------------------------
 	 GET /api/posts/check-slug
 ------------------------------------------------------------ */
-type PostExistsParam = Parameters<typeof Post.exists>[0];
-
 router.get(
 	"/check-slug",
 	async (
@@ -161,25 +161,18 @@ router.get(
 				return res.json({ available: false, suggestion: null });
 			}
 
-			/* Build the exists query inline and cast to PostExistsParam */
-			const existsQuery = (excludeId ?
-				{
-					slug: canonical,
-					_id: {
-						$ne: (() => {
-							try {
-								return new Types.ObjectId(excludeId);
-							} catch {
-								return excludeId;
-							}
-						})(),
-					},
+			const existsQuery: any = { slug: canonical, deleted: false };
+			if (excludeId) {
+				try {
+					existsQuery._id = { $ne: new Types.ObjectId(excludeId) };
+				} catch {
+					existsQuery._id = { $ne: excludeId };
 				}
-			:	{ slug: canonical }) as unknown as PostExistsParam;
+			}
 
 			const exists = await Post.exists(existsQuery);
 
-			if (!exists) {
+			if (!Boolean(exists)) {
 				return res.json({ available: true, suggestion: canonical });
 			}
 
@@ -465,9 +458,12 @@ router.put(
 				}).lean();
 
 				if (exists) {
+					const suggestion = await Post.computeSuggestion(finalSlug);
+
 					return res.status(409).json({
 						message: "Slug already exists",
 						errors: { slug: "Slug already exists" },
+						suggestion,
 					});
 				}
 

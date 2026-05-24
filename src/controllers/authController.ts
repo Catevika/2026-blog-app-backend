@@ -30,7 +30,7 @@ export const signup = wrapAsync(async (req: Request, res: Response) => {
 
 	await tokenService.setTokens(res, user._id.toString());
 
-	return res.status(201).json({ user: { user: serializeUser(user) } });
+	return res.status(201).json({ user: serializeUser(user) });
 });
 
 export const login = wrapAsync(async (req: Request, res: Response) => {

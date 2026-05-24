@@ -3,6 +3,11 @@ import { describe, expect, it } from "vitest";
 import { createAgent, loginTestUser } from "../../helpers/authHelpers.js";
 import { app } from "../../setup/appTest.js";
 
+const getCookies = (res: any) => {
+	const cookies = res.get("Set-Cookie");
+	return Array.isArray(cookies) ? cookies : cookies ? [cookies] : [];
+};
+
 describe("Auth Routes", () => {
 	it("signup creates a user and sets cookies", async () => {
 		const res = await request(app)
@@ -16,9 +21,9 @@ describe("Auth Routes", () => {
 
 		expect(res.body.user.email).toBe("signup@test.com");
 
-		const cookies = res.get("Set-Cookie");
-		expect(cookies?.some((c: string) => c.startsWith("accessToken="))).toBe(true);
-		expect(cookies?.some((c: string) => c.startsWith("refreshToken="))).toBe(true);
+		const cookies = getCookies(res);
+		expect(cookies.some((c: string) => c.startsWith("accessToken="))).toBe(true);
+		expect(cookies.some((c: string) => c.startsWith("refreshToken="))).toBe(true);
 	});
 
 	it("login works with valid credentials", async () => {

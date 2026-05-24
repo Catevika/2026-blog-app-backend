@@ -54,16 +54,16 @@
 		"@types/express": "^5.0.6",
 		"@types/jsonwebtoken": "^9.0.10",
 		"@types/multer": "^2.1.0",
-		"@types/node": "^25.9.0",
+		"@types/node": "^25.9.1",
 		"@types/supertest": "^7.2.0",
-		"@vitest/coverage-v8": "^4.1.6",
-		"@vitest/ui": "^4.1.6",
+		"@vitest/coverage-v8": "^4.1.7",
+		"@vitest/ui": "^4.1.7",
 		"jsdom": "^29.1.1",
 		"mongodb-memory-server": "^11.1.0",
 		"supertest": "^7.2.2",
 		"tsx": "^4.22.3",
 		"typescript": "^6.0.3",
-		"vitest": "^4.1.6",
+		"vitest": "^4.1.7",
 		"vitest-coverage-merge": "^0.2.0"
 	}
 }

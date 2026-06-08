@@ -1,6 +1,6 @@
-import { IUser, SerializedUser } from "../types/index.js";
+import { IUser } from "../types/index.js";
 
-export function serializeUser(user: IUser): SerializedUser {
+export function serializeUser(user: IUser) {
 	return {
 		id: user._id.toString(),
 		name: user.name,

@@ -15,10 +15,3 @@ export class InvalidPostIdError extends Error {
 		this.name = "InvalidPostIdError";
 	}
 }
-
-export class InvalidPostInputs extends Error {
-	constructor() {
-		super("Invalid post inputs");
-		this.name = "InvalidPostInputs";
-	}
-}

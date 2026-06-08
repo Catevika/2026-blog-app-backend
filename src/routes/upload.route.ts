@@ -1,7 +1,7 @@
-import fs from "node:fs/promises";
 import type { Request, Response } from "express";
 import { Router } from "express";
 import multer from "multer";
+import fs from "node:fs/promises";
 import { uploadImage } from "../middleware/uploadImage.js";
 import { storeImageAtomic } from "../utils/imageStore.js";
 import { validateMagicBytes } from "../utils/imageValidator.js";

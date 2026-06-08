@@ -38,6 +38,23 @@ beforeEach(async () => {
 });
 
 afterAll(async () => {
-	await mongoose.disconnect();
-	await mongo.stop();
+	try {
+		// Close all active connections
+		if (mongoose.connection.db) {
+			const collections = await mongoose.connection.db.collections();
+			for (const collection of collections) {
+				await collection.deleteMany({});
+			}
+		}
+
+		// Disconnect mongoose
+		await mongoose.disconnect();
+
+		// Stop MongoDB memory server
+		if (mongo) {
+			await mongo.stop();
+		}
+	} catch (err) {
+		console.error("Error during cleanup:", err);
+	}
 });

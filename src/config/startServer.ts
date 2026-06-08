@@ -1,8 +1,8 @@
+import fs from "node:fs";
 import path from "node:path";
 import app from "../server.js";
 import { connectDB } from "./db.js";
 import { ENV } from "./env.js";
-import fs from "node:fs";
 
 export async function startServer(): Promise<void> {
 	const db = await connectDB();

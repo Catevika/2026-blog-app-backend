@@ -1,8 +1,8 @@
+import type { RequestHandler } from "express";
+import multer, { MulterError } from "multer";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import type { RequestHandler } from "express";
-import multer, { MulterError } from "multer";
 import { ALLOWED_EXTENSIONS, MAX_FILE_SIZE } from "../constants/index.js";
 
 const TMP_UPLOADS = path.join(process.cwd(), "tmp", "uploads", "images");

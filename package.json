@@ -40,30 +40,36 @@
 		"cors": "^2.8.6",
 		"dotenv": "^17.4.2",
 		"express": "^5.2.1",
-		"express-rate-limit": "^8.5.2",
 		"jsonwebtoken": "^9.0.3",
 		"mongodb": "^7.2.0",
-		"mongoose": "^9.6.2",
-		"multer": "^2.1.1"
+		"mongoose": "^9.6.3",
+		"multer": "^2.1.1",
+		"puppeteer": "^25.1.0",
+		"rate-limiter-flexible": "^11.1.1"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "2.4.15",
-		"@express-rate-limit/tsconfig": "^1.0.2",
+		"@biomejs/biome": "2.4.16",
+		"@express-rate-limit/tsconfig": "^1.0.5",
 		"@types/cookie-parser": "^1.4.10",
 		"@types/cors": "^2.8.19",
 		"@types/express": "^5.0.6",
 		"@types/jsonwebtoken": "^9.0.10",
 		"@types/multer": "^2.1.0",
-		"@types/node": "^25.9.1",
+		"@types/node": "^25.9.2",
 		"@types/supertest": "^7.2.0",
-		"@vitest/coverage-v8": "^4.1.7",
-		"@vitest/ui": "^4.1.7",
+		"@vitest/coverage-v8": "^4.1.8",
+		"@vitest/ui": "^4.1.8",
 		"jsdom": "^29.1.1",
-		"mongodb-memory-server": "^11.1.0",
+		"mongodb-memory-server": "^11.2.0",
 		"supertest": "^7.2.2",
-		"tsx": "^4.22.3",
+		"tsx": "^4.22.4",
 		"typescript": "^6.0.3",
-		"vitest": "^4.1.7",
+		"vitest": "^4.1.8",
 		"vitest-coverage-merge": "^0.2.0"
+	},
+	"allowScripts": {
+		"esbuild@0.28.0": true,
+		"mongodb-memory-server@11.2.0": true,
+		"puppeteer@25.1.0": true
 	}
 }

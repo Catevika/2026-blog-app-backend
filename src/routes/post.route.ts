@@ -9,6 +9,7 @@ import {
 	POSTS_TOTAL_LIMIT,
 	SEARCH_LIMIT,
 } from "../config/post.js";
+import { InvalidPostIdError, PostNotFoundError } from "../errors/postErrors.js";
 import { requireAuth } from "../middleware/requireAuth.js";
 import { Post } from "../models/Post.js";
 import type {
@@ -29,7 +30,6 @@ import type {
 	SerializedPost,
 } from "../types/index.js";
 import { resolvePostId } from "../utils/resolvePostId.js";
-import { InvalidPostIdError, PostNotFoundError } from "../errors/postErrors.js";
 import { serializePost } from "../utils/serializePost.js";
 import { slugifyFinal } from "../utils/slugUtils.js";
 
@@ -296,7 +296,7 @@ router.get(
 );
 
 /* ------------------------------------------------------------
-	 GET /api/posts/feed (Feed) - sorted by CreatedAt
+   GET /api/posts/feed (Feed with Search)
 ------------------------------------------------------------ */
 router.get(
 	"/feed",
@@ -308,8 +308,56 @@ router.get(
 			const page = Math.max(1, Number(req.query.page ?? 1));
 			const skip = (page - 1) * FEED_PER_PAGE;
 
-			const filter = { status: "published" as const, deleted: false };
+			const search =
+				typeof req.query.search === "string" && req.query.search.trim() ?
+					req.query.search.trim()
+				:	undefined;
 
+			const filter: PostFilter = {
+				status: "published",
+				deleted: false,
+			};
+
+			// Apply search filter
+			if (search) {
+				filter.$or = [
+					{ title: { $regex: search, $options: "i" } },
+					{ content: { $regex: search, $options: "i" } },
+				];
+			}
+
+			// SEARCH MODE — limit results
+			if (search) {
+				const allResults = (await Post.find(filter)
+					.sort({ createdAt: -1 })
+					.limit(SEARCH_LIMIT)
+					.populate<{ author: IUserRef }>("author", "name email")
+					.lean()
+					.exec()) as PopulatedPost[];
+
+				const totalDocs = allResults.length;
+				const totalPages = Math.max(1, Math.ceil(totalDocs / FEED_PER_PAGE));
+
+				const docs = allResults
+					.slice(skip, skip + FEED_PER_PAGE)
+					.map(serializePost);
+
+				return res.json({
+					docs,
+					pagination: {
+						totalDocs,
+						limit: FEED_PER_PAGE,
+						page,
+						totalPages,
+						hasNextPage: page < totalPages,
+						hasPrevPage: page > 1,
+						nextPage: page < totalPages ? page + 1 : null,
+						prevPage: page > 1 ? page - 1 : null,
+					},
+				});
+			}
+
+			// NORMAL FEED MODE
 			const [posts, totalDocsRaw] = await Promise.all([
 				Post.find(filter)
 					.sort({ createdAt: -1 })

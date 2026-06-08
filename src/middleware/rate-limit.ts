@@ -1,37 +1,60 @@
-import "dotenv/config";
-import type { RateLimitRequestHandler } from "express-rate-limit";
-import { rateLimit } from "express-rate-limit";
+import type { NextFunction, Request, Response } from "express";
+import type { RateLimiterRes } from "rate-limiter-flexible";
+import { RateLimiterMemory } from "rate-limiter-flexible";
 import { ENV, RATE_LIMIT_MS } from "../config/index.js";
 
-export function createAuthLimiter(): RateLimitRequestHandler {
-	return rateLimit({
-		windowMs: RATE_LIMIT_MS, // 15 minutes
-		limit: 5,
-		standardHeaders: "draft-8",
-		legacyHeaders: false,
-		message: { error: "Too many signup/login attempts." },
-		handler: (req, res, _next, options) => {
-			const resetTime = req.rateLimit?.resetTime;
+const loginLimiter = new RateLimiterMemory({
+	points: 5,
+	duration: RATE_LIMIT_MS / 1000,
+	blockDuration: RATE_LIMIT_MS / 1000,
+});
 
-			const retryAfterSeconds = resetTime
-				? Math.ceil((resetTime.getTime() - Date.now()) / 1000)
-				: Math.ceil(options.windowMs / 1000);
+// Normalize IP (IPv6 → IPv4)
+function getClientIp(req: Request) {
+	const rawIp = req.ip ?? "0.0.0.0";
+	return rawIp.replace("::ffff:", "");
+}
 
-			res.setHeader("Retry-After", retryAfterSeconds.toString());
+// Normalize email
+function getEmail(req: Request) {
+	return (req.body?.email ?? "unknown").toString().toLowerCase();
+}
 
-			res.status(options.statusCode).json({
-				error: "Too many signup/login attempts.",
-				retryAfter: retryAfterSeconds,
-			});
-		},
+// Build the EXACT SAME key for both consume + reset
+function getLimiterKey(req: Request) {
+	const ip = getClientIp(req);
+	const email = getEmail(req);
+	return `login:${ip}:${email}`;
+}
 
-		skip: () => {
-			// Disable limiter for ALL tests except the rateLimiter tests
-			if (ENV.VITEST === "true" && ENV.TEST_RATE_LIMITER !== "true") {
-				return true;
-			}
+export async function authRateLimit(
+	req: Request,
+	res: Response,
+	next: NextFunction
+) {
+	if (ENV.VITEST === "true" && ENV.TEST_RATE_LIMITER !== "true") {
+		return next();
+	}
 
-			return false;
-		},
-	});
+	const key = getLimiterKey(req);
+
+	try {
+		await loginLimiter.consume(key);
+		return next();
+	} catch (err: unknown) {
+		const rl = err as RateLimiterRes;
+		const retrySecs = Math.ceil(rl.msBeforeNext / 1000);
+
+		res.setHeader("Retry-After", retrySecs.toString());
+
+		return res.status(429).json({
+			error: "Too many login/signup attempts.",
+			retryAfter: retrySecs,
+		});
+	}
+}
+
+export async function resetAuthRateLimit(req: Request) {
+	const key = getLimiterKey(req);
+	await loginLimiter.delete(key);
 }

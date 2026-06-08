@@ -6,11 +6,12 @@ import {
 	REFRESH_COOKIE_NAME,
 	REFRESH_TOKEN_MAX_AGE,
 } from "../config/authConfig.js";
+import { resetAuthRateLimit } from "../middleware/rate-limit.js";
 import { RefreshToken } from "../models/RefreshToken.js";
 import { User } from "../models/User.js";
 import * as tokenService from "../services/tokenService.js";
-import { wrapAsync } from "../utils/wrapAsync.js";
 import { serializeUser } from "../utils/serializeUser.js";
+import { wrapAsync } from "../utils/wrapAsync.js";
 
 export const signup = wrapAsync(async (req: Request, res: Response) => {
 	const { email, password, name } = req.body;
@@ -28,9 +29,23 @@ export const signup = wrapAsync(async (req: Request, res: Response) => {
 
 	const user = await User.create({ email, name, passwordHash, role: "user" });
 
-	await tokenService.setTokens(res, user._id.toString());
-
-	return res.status(201).json({ user: serializeUser(user) });
+	// Ensure limiter reset is attempted even if token setting fails
+	try {
+		await tokenService.setTokens(res, user._id.toString());
+		return res.status(201).json({ user: serializeUser(user) });
+	} catch (e) {
+		// If token setting fails, still attempt to reset rate limiter and return error
+		console.error("[auth] signup setTokens threw:", e);
+		if (!res.headersSent)
+			res.status(500).json({ message: "Failed to set tokens" });
+		return;
+	} finally {
+		try {
+			await resetAuthRateLimit(req);
+		} catch (err) {
+			console.error("[auth] signup resetAuthRateLimit failed:", err);
+		}
+	}
 });
 
 export const login = wrapAsync(async (req: Request, res: Response) => {
@@ -50,9 +65,22 @@ export const login = wrapAsync(async (req: Request, res: Response) => {
 		return res.status(401).json({ message: "Invalid credentials" });
 	}
 
-	await tokenService.setTokens(res, user._id.toString());
-
-	return res.json({ user: serializeUser(user) });
+	// Ensure limiter reset is attempted even if token setting fails
+	try {
+		await tokenService.setTokens(res, user._id.toString());
+		return res.status(200).json({ user: serializeUser(user) });
+	} catch (e) {
+		console.error("[auth] login setTokens threw:", e);
+		if (!res.headersSent)
+			res.status(500).json({ message: "Failed to set tokens" });
+		return;
+	} finally {
+		try {
+			await resetAuthRateLimit(req);
+		} catch (err) {
+			console.error("[auth] login resetAuthRateLimit failed:", err);
+		}
+	}
 });
 
 export const logout = wrapAsync(async (req: Request, res: Response) => {
@@ -113,6 +141,13 @@ export const refresh = wrapAsync(async (req: Request, res: Response) => {
 		.exec();
 	if (!user) {
 		return res.status(401).json({ message: "User not found" });
+	}
+
+	// After successful refresh, attempt to reset limiter for this request (safe to call)
+	try {
+		await resetAuthRateLimit(req);
+	} catch (err) {
+		console.error("[auth] refresh resetAuthRateLimit failed:", err);
 	}
 
 	return res.json({ user: serializeUser(user) });

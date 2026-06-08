@@ -1,7 +1,7 @@
 import { Types } from "mongoose";
+import { InvalidPostIdError, PostNotFoundError } from "../errors/postErrors.js";
 import { Post } from "../models/Post.js";
 import { slugifyFinal } from "./slugUtils.js";
-import { InvalidPostIdError, PostNotFoundError } from "../errors/postErrors.js";
 
 type ResolveOptions = {
 	preferSlug?: boolean;

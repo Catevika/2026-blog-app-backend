@@ -1,4 +1,4 @@
-import type { Document, Types, Model } from "mongoose";
+import type { Document, Types, HydratedDocument, Model } from "mongoose";
 
 export type AppEnv = {
 	NODE_ENV: "development" | "production" | "test" | string;
@@ -56,6 +56,7 @@ export interface IUserRef {
 
 export interface SerializedUser {
 	id: string;
+	user: string;
 	name: string;
 	email: string;
 	role: "user" | "admin";
@@ -122,30 +123,14 @@ export interface PostQuery {
 	search?: string;
 }
 
-export interface PaginatedPost {
-	docs: SerializedPost[];
-	pagination: {
-		totalDocs: number;
-		limit: number;
-		page: number;
-		totalPages: number;
-		hasNextPage: boolean;
-		hasPrevPage: boolean;
-		nextPage: number | null;
-		prevPage: number | null;
-	};
-}
-
-export type PostsResponse = PaginatedPost | { error: string };
-
-export interface CheckSlugQuery {
-	slug?: string;
-	excludeId?: string;
-}
-
 export type CheckSlugResponse = {
 	available: boolean;
 	suggestion: string | null;
+};
+
+export type CheckSlugQuery = {
+	slug: string;
+	excludeId?: string;
 };
 
 // -----------------------------
@@ -181,6 +166,28 @@ export type SerializedPost = {
 	createdAt?: Date;
 	updatedAt?: Date;
 };
+
+export interface PaginationInfo {
+	totalDocs: number;
+	limit: number;
+	page: number;
+	totalPages: number;
+	hasNextPage: boolean;
+	hasPrevPage: boolean;
+	nextPage: number | null;
+	prevPage: number | null;
+}
+
+export interface PostsSuccessResponse {
+	docs: SerializedPost[];
+	pagination: PaginationInfo;
+}
+
+export interface PostsErrorResponse {
+	error: string;
+}
+
+export type PostsResponse = PostsSuccessResponse | PostsErrorResponse;
 
 export type PostCreateResponse =
 	| SerializedPost
@@ -219,3 +226,115 @@ export type PostRestoreResponse =
 	| SerializedPost
 	| { error: string }
 	| { message: string };
+
+// ---------------------------------------------------------
+// 	PDF
+// ---------------------------------------------------------
+
+export interface PdfRequestBody {
+	postId?: string;
+	title?: string;
+}
+
+// ---------------------------------------------------------
+// 	COMMENT DOCUMENT (Mongoose)
+// ---------------------------------------------------------
+
+export interface IComment {
+	_id: Types.ObjectId;
+	postId: Types.ObjectId;
+	author: Types.ObjectId;
+	content: string;
+	likedBy: Types.ObjectId[];
+	likeCount: number;
+	parentId: Types.ObjectId | null;
+	depth: number;
+	deleted: boolean;
+	createdAt: Date;
+	updatedAt: Date;
+
+	// Computed fields (not stored)
+	replyCount?: number;
+	replies?: IComment[];
+}
+
+export type CommentDoc = HydratedDocument<IComment>;
+
+export type CommentValidationErrors = Partial<{
+	content: string;
+}>;
+
+export type TreeComment = Omit<IComment, "replies"> & {
+	replies: TreeComment[];
+};
+
+// ---------------------------------------------------------
+// 	COMMENT REQUEST TYPES
+// ---------------------------------------------------------
+
+export interface CommentRequest extends Express.Request {
+	params: {
+		postId: string;
+		id: string;
+	};
+	query: {
+		page?: string;
+		limit?: string;
+	};
+	body: {
+		content: string;
+		parentId?: string;
+		deleted?: boolean;
+	};
+	user?: {
+		userId: string;
+	};
+}
+
+// ---------------------------------------------------------
+// 	POPULATED COMMENT
+// ---------------------------------------------------------
+
+export interface PopulatedAuthor {
+	_id: Types.ObjectId;
+	name?: string;
+	email: string;
+}
+
+export type PopulatedComment = Omit<IComment, "author"> & {
+	author: Types.ObjectId | PopulatedAuthor | null;
+	replyCount?: number;
+};
+
+// ------------------------------------------------------------
+// COMMENT DTO (serialized API shape)
+// ------------------------------------------------------------
+
+export interface SerializedComment {
+	id: string;
+	postId: string;
+
+	authorId: string | null;
+	author: {
+		id: string;
+		name?: string;
+		email: string;
+	} | null;
+
+	content: string;
+	liked: boolean;
+	likedBy: string[];
+	likeCount: number;
+
+	parentId: string | null;
+	depth: number;
+	deleted: boolean;
+
+	replyCount: number;
+	hasReplies: boolean;
+
+	replies?: SerializedComment[];
+
+	createdAt: Date;
+	updatedAt: Date;
+}

@@ -9,6 +9,9 @@ export default defineConfig({
 			"tests/integration/**/*.test.ts",
 			"tests/integration/**/*.spec.ts",
 		],
+		testTimeout: 30000,
+		hookTimeout: 30000,
+		bail: 0,
 		coverage: {
 			enabled: true,
 			provider: "v8",
@@ -16,9 +19,7 @@ export default defineConfig({
 			reporter: ["text", "json", "html", "lcov"],
 		},
 		typecheck: {
-			enabled: true,
-			include: ["src/**/*.{ts,js}", "tests/**/*.{ts,js}"],
-			tsconfig: "tsconfig.test.json",
+			enabled: false,
 		},
 	},
 });

@@ -1,38 +1,38 @@
 {
-	"compilerOptions": {
-		"target": "ES2022",
-		"lib": ["DOM", "ES2022"],
-		"module": "NodeNext",
-		"moduleResolution": "NodeNext",
-		"allowSyntheticDefaultImports": true,
-		"esModuleInterop": true,
-		"forceConsistentCasingInFileNames": true,
-		"strict": true,
-		"noImplicitAny": true,
-		"noImplicitReturns": true,
-		"noImplicitOverride": true,
-		"noPropertyAccessFromIndexSignature": true,
-		"noUncheckedIndexedAccess": true,
-		"noUnusedLocals": true,
-		"noUnusedParameters": true,
-		"exactOptionalPropertyTypes": true,
-		"strictNullChecks": true,
-		"noFallthroughCasesInSwitch": true,
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
 
-		"outDir": "./dist",
-		"rootDir": ".",
-		"removeComments": true,
-		"declaration": true,
-		"declarationMap": true,
-		"sourceMap": true,
-		"inlineSources": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
 
-		"skipLibCheck": true,
-		"resolveJsonModule": true,
-		"types": ["node"]
-	},
-	"ts-node": {
-		"esm": true,
-		"experimentalSpecifierResolution": "node"
-	}
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "strictNullChecks": true,
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedIndexedAccess": true,
+    "noFallthroughCasesInSwitch": true,
+
+    "noUnusedLocals": true,
+    "noUnusedParameters": false,
+
+    "outDir": "./dist",
+
+    "removeComments": true,
+    "declaration": false,
+    "sourceMap": true,
+    "inlineSources": true,
+
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+
+    "types": ["node", "vitest"],
+  },
+
+  "include": ["src", "tests"],
+  "exclude": ["dist", "node_modules"]
 }

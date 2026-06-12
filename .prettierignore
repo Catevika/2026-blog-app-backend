@@ -1,0 +1,36 @@
+# Build output
+dist/
+build/
+
+# Node modules
+node_modules/
+
+# Environment files
+.env
+.env.*
+
+# Coverage output
+coverage/
+
+# Uploaded images
+uploads/
+
+# Logs
+logs/
+*.log
+
+# Do not format JSON env files
+*.json
+
+# Do not format markdown docs if you prefer manual formatting
+README.md
+
+# Vitest cache
+.vitest/
+
+# Puppeteer cache
+.puppeteer/
+
+# Temporary files
+tmp/
+temp/

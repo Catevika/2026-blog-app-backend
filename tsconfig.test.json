@@ -1,9 +1,17 @@
 {
-	"extends": "./tsconfig.json",
-	"compilerOptions": {
-		"strict": false,
-		"types": ["node", "vitest"]
-	},
-	"include": ["src/**/*", "tests/**/*", "**/*.test.ts", "**/*.spec.ts"],
-	"exclude": ["node_modules", "dist"]
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "strict": false,
+    "types": ["node", "vitest"],
+    "moduleResolution": "node",
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+  },
+  "include": [
+    "src/**/*",
+    "tests/**/*",
+    "**/*.test.ts",
+    "**/*.spec.ts"
+  ],
+  "exclude": ["dist", "node_modules"]
 }

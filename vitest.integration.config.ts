@@ -5,10 +5,7 @@ export default defineConfig({
 		globals: true,
 		environment: "node",
 		setupFiles: ["./tests/setup/dbTest.ts", "./tests/setup/appTest.ts"],
-		include: [
-			"tests/integration/**/*.test.ts",
-			"tests/integration/**/*.spec.ts",
-		],
+		include: ["tests/integration/**/*.test.ts", "tests/integration/**/*.spec.ts"],
 		testTimeout: 30000,
 		hookTimeout: 30000,
 		bail: 0,
@@ -17,6 +14,7 @@ export default defineConfig({
 			provider: "v8",
 			reportsDirectory: "coverage/integration",
 			reporter: ["text", "json", "html", "lcov"],
+			exclude: ["tests/**", "dist/**"],
 		},
 		typecheck: {
 			enabled: false,

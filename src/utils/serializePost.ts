@@ -1,4 +1,4 @@
-import { PopulatedPost, SerializedPost } from "../types/index.js";
+import type { PopulatedPost, SerializedPost } from "../types/index.js";
 
 export function serializePost(post: PopulatedPost): SerializedPost {
 	return {

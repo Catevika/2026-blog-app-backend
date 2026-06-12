@@ -9,7 +9,7 @@ describe("Post model unit tests and utilities", () => {
 	});
 
 	it("computeSuggestion returns canonical when no matches", async () => {
-		mockFindResults(Post, []); // chainable mock for find().lean().exec()
+		mockFindResults(Post, []);
 		const canonical = slugUtils.slugifyFinal("Unique Title");
 		const result = await Post.computeSuggestion("Unique Title");
 		expect(result).toBe(canonical);
@@ -20,6 +20,20 @@ describe("Post model unit tests and utilities", () => {
 		mockFindResults(Post, matches);
 		const result = await Post.computeSuggestion("Foo");
 		expect(result).toBe("foo-4");
+	});
+
+	// ✔ Corrected: canonical slug is used, but suggestion is foo-bar-2
+	it("computeSuggestion uses canonical slug for DB lookup", async () => {
+		mockFindResults(Post, [{ slug: "foo-bar" }]);
+		const result = await Post.computeSuggestion("Foo Bar");
+		expect(result).toBe("foo-bar-2");
+	});
+
+	// ✔ Corrected: exact match increments to foo-2
+	it("computeSuggestion increments suffix when only exact canonical exists", async () => {
+		mockFindResults(Post, [{ slug: "foo" }]);
+		const result = await Post.computeSuggestion("Foo");
+		expect(result).toBe("foo-2");
 	});
 
 	it("computeSuggestion falls back to post-<timestamp> when slugifyFinal returns empty", async () => {
@@ -35,14 +49,17 @@ describe("Post model unit tests and utilities", () => {
 			lean: () => ({ exec: () => Promise.reject(new Error("db failure")) }),
 		} as any);
 
-		await expect(Post.computeSuggestion("Anything")).rejects.toThrow(
-			"db failure"
-		);
+		await expect(Post.computeSuggestion("Anything")).rejects.toThrow("db failure");
 	});
 
 	it("slugifyFinal normalizes strings and returns empty for invalid input", () => {
 		expect(slugUtils.slugifyFinal("Hello World")).toBe("hello-world");
 		expect(slugUtils.slugifyFinal("  ")).toBe("");
 		expect(slugUtils.slugifyFinal("This & That")).toContain("this-that");
+	});
+
+	it("slugifyFinal collapses multiple hyphens", () => {
+		expect(slugUtils.slugifyFinal("Hello---World")).toBe("hello-world");
+		expect(slugUtils.slugifyFinal("Hello   World")).toBe("hello-world");
 	});
 });

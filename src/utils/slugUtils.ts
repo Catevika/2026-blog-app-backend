@@ -1,3 +1,5 @@
+import type mongoose from "mongoose";
+
 export function slugifyFinal(input: string): string {
 	if (!input) return "";
 	return input
@@ -13,10 +15,10 @@ export function slugifyFinal(input: string): string {
 }
 
 export async function computeSlugSuggestion(
-	model: import("mongoose").Model<unknown> & {
+	model: mongoose.Model<unknown> & {
 		computeSuggestion?: (base: string) => Promise<string>;
 	},
-	base: string
+	base: string,
 ): Promise<string> {
 	if (typeof model.computeSuggestion === "function") {
 		return model.computeSuggestion(base);

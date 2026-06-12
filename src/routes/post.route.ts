@@ -36,7 +36,7 @@ import { slugifyFinal } from "../utils/slugUtils.js";
 const router = express.Router();
 
 /* ------------------------------------------------------------
-	 Duplicate key guard
+     Duplicate key guard
 ------------------------------------------------------------ */
 function isDuplicateError(error: unknown): error is DuplicateError {
 	if (
@@ -51,18 +51,14 @@ function isDuplicateError(error: unknown): error is DuplicateError {
 }
 
 /* ------------------------------------------------------------
-	 POST /api/posts (create)
+     POST /api/posts (create)
 ------------------------------------------------------------ */
 router.post(
 	"/new",
 	requireAuth,
-	async (
-		req: Request<unknown, PostCreateResponse, PostBody>,
-		res: Response<PostCreateResponse>
-	) => {
+	async (req: Request<object, PostCreateResponse, PostBody>, res: Response<PostCreateResponse>) => {
 		try {
-			const { title, slug, locked, content, status } =
-				req.body ?? ({} as PostBody);
+			const { title, slug, locked, content, status } = req.body ?? ({} as PostBody);
 
 			const errors: Record<string, string> = {};
 
@@ -79,7 +75,6 @@ router.post(
 			const canonical = slugifyFinal(slug);
 			const finalSlug = canonical || `post-${Date.now()}`;
 
-			/* Cast the literal to the exact findOne param type to avoid index-signature issues */
 			const exists = await Post.findOne({
 				slug: finalSlug,
 				deleted: false,
@@ -109,16 +104,13 @@ router.post(
 				likeCount: 0,
 			});
 
-			/* Re-query to populate author and return a lean/populated shape */
 			const populated = (await Post.findById(postDoc._id)
 				.populate<{ author: IUserRef }>("author", "name email")
 				.lean()
 				.exec()) as PopulatedPost | null;
 
 			if (!populated) {
-				return res
-					.status(500)
-					.json({ message: "Unable to fetch created post" });
+				return res.status(500).json({ message: "Unable to fetch created post" });
 			}
 
 			return res.status(201).json(serializePost(populated));
@@ -133,24 +125,21 @@ router.post(
 			console.error("POST /posts error:", err);
 			return res.status(500).json({ message: "Unable to create post" });
 		}
-	}
+	},
 );
 
 /* ------------------------------------------------------------
-	 GET /api/posts/check-slug
+     GET /api/posts/check-slug
 ------------------------------------------------------------ */
 router.get(
 	"/check-slug",
 	async (
-		req: Request<{}, CheckSlugResponse, {}, CheckSlugQuery>,
-		res: Response<CheckSlugResponse>
+		req: Request<object, CheckSlugResponse, object, CheckSlugQuery>,
+		res: Response<CheckSlugResponse>,
 	) => {
 		try {
 			const raw = typeof req.query.slug === "string" ? req.query.slug : "";
-			const excludeId =
-				typeof req.query.excludeId === "string" ?
-					req.query.excludeId
-				:	undefined;
+			const excludeId = typeof req.query.excludeId === "string" ? req.query.excludeId : undefined;
 
 			if (!raw.trim()) {
 				return res.status(400).json({ available: false, suggestion: null });
@@ -161,18 +150,18 @@ router.get(
 				return res.json({ available: false, suggestion: null });
 			}
 
-			const existsQuery: any = { slug: canonical, deleted: false };
+			const existsQuery: Record<string, unknown> = { slug: canonical, deleted: false };
 			if (excludeId) {
 				try {
-					existsQuery._id = { $ne: new Types.ObjectId(excludeId) };
+					existsQuery["_id"] = { $ne: new Types.ObjectId(excludeId) };
 				} catch {
-					existsQuery._id = { $ne: excludeId };
+					existsQuery["_id"] = { $ne: excludeId };
 				}
 			}
 
 			const exists = await Post.exists(existsQuery);
 
-			if (!Boolean(exists)) {
+			if (!exists) {
 				return res.json({ available: true, suggestion: canonical });
 			}
 
@@ -182,44 +171,37 @@ router.get(
 			console.error("GET /api/posts/check-slug error:", err);
 			return res.status(500).json({ available: false, suggestion: null });
 		}
-	}
+	},
 );
 
 /* ------------------------------------------------------------
-	 GET /api/posts (PostList + Search) - sorted by UpdatedAt
+     GET /api/posts (PostList + Search) - sorted by UpdatedAt
 ------------------------------------------------------------ */
 router.get(
 	"/",
-	async (
-		req: Request<{}, PostsResponse, {}, PostQuery>,
-		res: Response<PostsResponse>
-	) => {
+	async (req: Request<object, PostsResponse, object, PostQuery>, res: Response<PostsResponse>) => {
 		try {
 			const page = Math.max(1, Number(req.query.page ?? 1));
 			const skip = (page - 1) * POSTS_PER_PAGE;
 
 			const filter: PostFilter = {};
 
-			// status filter
 			if (typeof req.query.status === "string") {
 				filter.status = req.query.status;
 			}
 
-			// deleted filter
 			if (typeof req.query.deleted === "string") {
 				filter.deleted = req.query.deleted === "true";
 			}
 
-			// author filter
 			if (typeof req.query.author === "string" && req.query.author.trim()) {
 				filter.author = req.query.author;
 			}
 
-			// search filter
 			const search =
-				typeof req.query.search === "string" && req.query.search.trim() ?
-					req.query.search.trim()
-				:	undefined;
+				typeof req.query.search === "string" && req.query.search.trim()
+					? req.query.search.trim()
+					: undefined;
 
 			if (search) {
 				filter.$or = [
@@ -228,7 +210,6 @@ router.get(
 				];
 			}
 
-			// SEARCH MODE — apply SEARCH_LIMIT
 			if (search) {
 				const allResults = (await Post.find(filter)
 					.sort({ updatedAt: -1 })
@@ -239,9 +220,7 @@ router.get(
 
 				const totalDocs = allResults.length;
 				const totalPages = Math.max(1, Math.ceil(totalDocs / POSTS_PER_PAGE));
-				const docs = allResults
-					.slice(skip, skip + POSTS_PER_PAGE)
-					.map(serializePost);
+				const docs = allResults.slice(skip, skip + POSTS_PER_PAGE).map(serializePost);
 
 				return res.json({
 					docs,
@@ -258,7 +237,6 @@ router.get(
 				});
 			}
 
-			// NORMAL MODE — apply POSTS_TOTAL_LIMIT
 			const [rows, totalDocsRaw] = await Promise.all([
 				Post.find(filter)
 					.sort({ updatedAt: -1 })
@@ -292,7 +270,7 @@ router.get(
 			console.error("GET /posts error:", err);
 			return res.status(500).json({ error: "Failed to fetch posts" });
 		}
-	}
+	},
 );
 
 /* ------------------------------------------------------------
@@ -300,25 +278,21 @@ router.get(
 ------------------------------------------------------------ */
 router.get(
 	"/feed",
-	async (
-		req: Request<{}, PostsResponse, {}, PostQuery>,
-		res: Response<PostsResponse>
-	) => {
+	async (req: Request<object, PostsResponse, object, PostQuery>, res: Response<PostsResponse>) => {
 		try {
 			const page = Math.max(1, Number(req.query.page ?? 1));
 			const skip = (page - 1) * FEED_PER_PAGE;
 
 			const search =
-				typeof req.query.search === "string" && req.query.search.trim() ?
-					req.query.search.trim()
-				:	undefined;
+				typeof req.query.search === "string" && req.query.search.trim()
+					? req.query.search.trim()
+					: undefined;
 
 			const filter: PostFilter = {
 				status: "published",
 				deleted: false,
 			};
 
-			// Apply search filter
 			if (search) {
 				filter.$or = [
 					{ title: { $regex: search, $options: "i" } },
@@ -326,7 +300,6 @@ router.get(
 				];
 			}
 
-			// SEARCH MODE — limit results
 			if (search) {
 				const allResults = (await Post.find(filter)
 					.sort({ createdAt: -1 })
@@ -338,9 +311,7 @@ router.get(
 				const totalDocs = allResults.length;
 				const totalPages = Math.max(1, Math.ceil(totalDocs / FEED_PER_PAGE));
 
-				const docs = allResults
-					.slice(skip, skip + FEED_PER_PAGE)
-					.map(serializePost);
+				const docs = allResults.slice(skip, skip + FEED_PER_PAGE).map(serializePost);
 
 				return res.json({
 					docs,
@@ -357,7 +328,6 @@ router.get(
 				});
 			}
 
-			// NORMAL FEED MODE
 			const [posts, totalDocsRaw] = await Promise.all([
 				Post.find(filter)
 					.sort({ createdAt: -1 })
@@ -390,18 +360,15 @@ router.get(
 		} catch {
 			return res.status(500).json({ error: "Failed to fetch feed" });
 		}
-	}
+	},
 );
 
 /* ------------------------------------------------------------
-	 GET /api/posts/favorites (paginated, 5 posts max)
+     GET /api/posts/favorites (paginated, 5 posts max)
 ------------------------------------------------------------ */
 router.get(
 	"/favorites",
-	async (
-		req: Request<{}, PostsResponse, {}, PostQuery>,
-		res: Response<PostsResponse>
-	) => {
+	async (req: Request<object, PostsResponse, object, PostQuery>, res: Response<PostsResponse>) => {
 		try {
 			const page = Math.max(1, Number(req.query.page ?? 1));
 			const skip = (page - 1) * FAVORITES_LIMIT;
@@ -437,22 +404,18 @@ router.get(
 		} catch {
 			return res.status(500).json({ error: "Server error" });
 		}
-	}
+	},
 );
 
 /* ------------------------------------------------------------
-	 PUT /api/posts/:id (update or soft delete)
+     PUT /api/posts/:id (update or soft delete)
 ------------------------------------------------------------ */
 router.put(
 	"/:id",
 	requireAuth,
 	async (
-		req: Request<
-			{ id: string },
-			PostUpdateResponse,
-			Partial<PostBody> & { deleted?: boolean }
-		>,
-		res: Response<PostUpdateResponse>
+		req: Request<{ id: string }, PostUpdateResponse, Partial<PostBody> & { deleted?: boolean }>,
+		res: Response<PostUpdateResponse>,
 	) => {
 		try {
 			if (!req.user) return res.status(401).json({ message: "Unauthorized" });
@@ -463,38 +426,31 @@ router.put(
 			if (!postDoc) return res.status(404).json({ error: "Post not found" });
 			if (postDoc.author.toString() !== req.user.userId)
 				return res.status(403).json({ error: "Not authorized" });
-			if (postDoc.deleted)
-				return res.status(410).json({ error: "Post already deleted" });
+			if (postDoc.deleted) return res.status(410).json({ error: "Post already deleted" });
 
 			const { deleted, title, slug, locked, content, status } = req.body;
 
-			// Soft delete
 			if (deleted === true) {
 				postDoc.deleted = true;
 				await postDoc.save();
 
 				const populated = (await postDoc.populate<{ author: IUserRef }>(
 					"author",
-					"name email"
+					"name email",
 				)) as PopulatedPost;
 
 				return res.json(serializePost(populated));
 			}
 
-			// Validation
 			const errors: Record<string, string> = {};
-			if (title !== undefined && !title.trim())
-				errors["title"] = "Title is required";
-			if (slug !== undefined && !slug.trim())
-				errors["slug"] = "Slug is required";
-			if (content !== undefined && !content.trim())
-				errors["content"] = "Content is required";
+			if (title !== undefined && !title.trim()) errors["title"] = "Title is required";
+			if (slug !== undefined && !slug.trim()) errors["slug"] = "Slug is required";
+			if (content !== undefined && !content.trim()) errors["content"] = "Content is required";
 
 			if (Object.keys(errors).length > 0) {
 				return res.status(400).json({ message: "Validation error", errors });
 			}
 
-			// Slug change
 			if (slug !== undefined && slug.trim() !== postDoc.slug) {
 				const canonical = slugifyFinal(slug);
 				const finalSlug = canonical || `post-${Date.now()}`;
@@ -527,7 +483,7 @@ router.put(
 
 			const populated = (await postDoc.populate<{ author: IUserRef }>(
 				"author",
-				"name email"
+				"name email",
 			)) as PopulatedPost;
 
 			return res.json(serializePost(populated));
@@ -546,101 +502,94 @@ router.put(
 
 			return res.status(500).json({ error: "Unable to update post" });
 		}
-	}
+	},
 );
 
 /* ------------------------------------------------------------
-	 GET /api/posts/trash/list
+     GET /api/posts/trash/list
 ------------------------------------------------------------ */
-router.get(
-	"/trash/list",
-	requireAuth,
-	async (req: Request, res: Response<PostDeleteResponse>) => {
-		try {
-			if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+router.get("/trash/list", requireAuth, async (req: Request, res: Response<PostDeleteResponse>) => {
+	try {
+		if (!req.user) return res.status(401).json({ message: "Unauthorized" });
 
-			const userId = req.user.userId;
-			const page = Math.max(1, Number(req.query["page"] ?? 1));
-			const skip = (page - 1) * POSTS_PER_PAGE;
+		const userId = req.user.userId;
+		const page = Math.max(1, Number(req.query["page"] ?? 1));
+		const skip = (page - 1) * POSTS_PER_PAGE;
 
-			const search =
-				typeof req.query["search"] === "string" && req.query["search"].trim() ?
-					req.query["search"].trim()
-				:	undefined;
+		const search =
+			typeof req.query["search"] === "string" && req.query["search"].trim()
+				? req.query["search"].trim()
+				: undefined;
 
-			const filter: Record<string, unknown> = {
-				author: userId,
-				deleted: true,
-			};
+		const filter: Record<string, unknown> = {
+			author: userId,
+			deleted: true,
+		};
 
-			if (search) {
-				filter["$or"] = [
-					{ title: { $regex: search, $options: "i" } },
-					{ content: { $regex: search, $options: "i" } },
-				];
-			}
-
-			const [posts, totalDocs] = await Promise.all([
-				Post.find(filter)
-					.sort({ updatedAt: -1 })
-					.skip(skip)
-					.limit(POSTS_PER_PAGE)
-					.populate<{ author: IUserRef }>("author", "name email")
-					.lean()
-					.exec()
-					.then((rows) => rows as PopulatedPost[]),
-
-				Post.countDocuments(filter),
-			]);
-
-			const totalPages = Math.max(1, Math.ceil(totalDocs / POSTS_PER_PAGE));
-
-			return res.json({
-				docs: posts.map(serializePost),
-				pagination: {
-					totalDocs,
-					limit: POSTS_PER_PAGE,
-					page,
-					totalPages,
-					hasNextPage: page < totalPages,
-					hasPrevPage: page > 1,
-					nextPage: page < totalPages ? page + 1 : null,
-					prevPage: page > 1 ? page - 1 : null,
-				},
-			});
-		} catch {
-			return res.status(500).json({ message: "Unable to fetch trashed posts" });
+		if (search) {
+			filter["$or"] = [
+				{ title: { $regex: search, $options: "i" } },
+				{ content: { $regex: search, $options: "i" } },
+			];
 		}
-	}
-);
 
-/* ------------------------------------------------------------
-	 GET /api/posts/:id (Post Detail)
------------------------------------------------------------- */
-router.get(
-	"/:id",
-	async (req: Request<{ id: string }>, res: Response<PostResponse>) => {
-		try {
-			const post = await Post.findById(req.params.id)
+		const [posts, totalDocs] = await Promise.all([
+			Post.find(filter)
+				.sort({ updatedAt: -1 })
+				.skip(skip)
+				.limit(POSTS_PER_PAGE)
 				.populate<{ author: IUserRef }>("author", "name email")
 				.lean()
 				.exec()
-				.then((p) => p as PopulatedPost | null);
+				.then((rows) => rows as PopulatedPost[]),
 
-			if (!post) {
-				return res.status(404).json({ error: "Post not found" });
-			}
+			Post.countDocuments(filter),
+		]);
 
-			return res.json(serializePost(post));
-		} catch (err) {
-			console.error("GET /posts/:id error:", err);
-			return res.status(500).json({ error: "Failed to fetch post" });
-		}
+		const totalPages = Math.max(1, Math.ceil(totalDocs / POSTS_PER_PAGE));
+
+		return res.json({
+			docs: posts.map(serializePost),
+			pagination: {
+				totalDocs,
+				limit: POSTS_PER_PAGE,
+				page,
+				totalPages,
+				hasNextPage: page < totalPages,
+				hasPrevPage: page > 1,
+				nextPage: page < totalPages ? page + 1 : null,
+				prevPage: page > 1 ? page - 1 : null,
+			},
+		});
+	} catch {
+		return res.status(500).json({ message: "Unable to fetch trashed posts" });
 	}
-);
+});
 
 /* ------------------------------------------------------------
-	 POST /api/posts/:id/restore
+     GET /api/posts/:id (Post Detail)
+------------------------------------------------------------ */
+router.get("/:id", async (req: Request<{ id: string }>, res: Response<PostResponse>) => {
+	try {
+		const post = await Post.findById(req.params.id)
+			.populate<{ author: IUserRef }>("author", "name email")
+			.lean()
+			.exec()
+			.then((p) => p as PopulatedPost | null);
+
+		if (!post) {
+			return res.status(404).json({ error: "Post not found" });
+		}
+
+		return res.json(serializePost(post));
+	} catch (err) {
+		console.error("GET /posts/:id error:", err);
+		return res.status(500).json({ error: "Failed to fetch post" });
+	}
+});
+
+/* ------------------------------------------------------------
+     POST /api/posts/:id/restore
 ------------------------------------------------------------ */
 router.post(
 	"/:id/restore",
@@ -652,27 +601,24 @@ router.post(
 			const post = await Post.findOneAndUpdate(
 				{ _id: req.params.id, author: req.user.userId, deleted: true },
 				{ deleted: false },
-				{ returnDocument: "after" }
+				{ returnDocument: "after" },
 			)
 				.populate<{ author: IUserRef }>("author", "name email")
 				.lean()
 				.exec()
 				.then((p) => p as PopulatedPost | null);
 
-			if (!post)
-				return res
-					.status(404)
-					.json({ error: "Post not found or unauthorized" });
+			if (!post) return res.status(404).json({ error: "Post not found or unauthorized" });
 
 			return res.json(serializePost(post));
 		} catch {
 			return res.status(500).json({ message: "Failed to restore post" });
 		}
-	}
+	},
 );
 
 /* ------------------------------------------------------------
-	 POST /api/posts/:id/like
+     POST /api/posts/:id/like
 ------------------------------------------------------------ */
 router.post(
 	"/:id/like",
@@ -689,31 +635,22 @@ router.post(
 			  }
 			| { success: false; message: string }
 			| { error: string }
-		>
+		>,
 	) => {
 		try {
-			if (!req.user)
-				return res
-					.status(401)
-					.json({ success: false, message: "Unauthorized" });
+			if (!req.user) return res.status(401).json({ success: false, message: "Unauthorized" });
 
 			const postId = await resolvePostId(req.params.id);
 			const userId = req.body.userId;
 
-			if (!userId)
-				return res
-					.status(400)
-					.json({ success: false, message: "userId required" });
+			if (!userId) return res.status(400).json({ success: false, message: "userId required" });
 
 			const postDoc = await Post.findOne({
 				_id: postId,
 				deleted: false,
 			}).populate<{ author: IUserRef }>("author", "name email");
 
-			if (!postDoc)
-				return res
-					.status(404)
-					.json({ success: false, message: "Post not found" });
+			if (!postDoc) return res.status(404).json({ success: false, message: "Post not found" });
 
 			if (postDoc.author._id.toString() === userId) {
 				return res.status(403).json({
@@ -724,13 +661,11 @@ router.post(
 
 			if (!Array.isArray(postDoc.likedBy)) postDoc.likedBy = [];
 
-			const alreadyLiked = postDoc.likedBy.some(
-				(_id: Types.ObjectId) => _id.toString() === userId
-			);
+			const alreadyLiked = postDoc.likedBy.some((_id: Types.ObjectId) => _id.toString() === userId);
 
 			if (alreadyLiked) {
 				postDoc.likedBy = postDoc.likedBy.filter(
-					(_id: Types.ObjectId) => _id.toString() !== userId
+					(_id: Types.ObjectId) => _id.toString() !== userId,
 				);
 				postDoc.liked = false;
 			} else {
@@ -759,7 +694,7 @@ router.post(
 
 			return res.status(500).json({ success: false, message: "Server error" });
 		}
-	}
+	},
 );
 
 export default router;

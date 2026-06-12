@@ -1,4 +1,4 @@
-import { IUser } from "../types/index.js";
+import type { IUser } from "../types/index.js";
 
 export function serializeUser(user: IUser) {
 	return {

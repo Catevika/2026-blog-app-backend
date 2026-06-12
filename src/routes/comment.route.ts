@@ -1,12 +1,9 @@
-import { Request, Response, Router } from "express";
+import type { Request, Response } from "express";
+import { Router } from "express";
 import { Types } from "mongoose";
-import { requireAuth } from "../middleware/requireAuth.js";
+import { authenticateToken, requireAuth } from "../middleware/requireAuth.js";
 import { Comment } from "../models/Comment.js";
-import {
-	CommentRequest,
-	SerializedComment,
-	TreeComment,
-} from "../types/index.js";
+import type { CommentRequest, SerializedComment, TreeComment } from "../types/index.js";
 import { resolvePostId } from "../utils/resolvePostId.js";
 import { serializeComment } from "../utils/serializeComment.js";
 import { toObjectId } from "../utils/toObjectId.js";
@@ -24,9 +21,9 @@ function normalizeParam(param: string | string[] | undefined): string | null {
 }
 
 /* -------------------------------------------------------
-   GET /api/posts/:postId/comments
+   GET /api/posts/:postId/comments - READ public & other under authentication
 ------------------------------------------------------- */
-router.get("/", async (req: Request, res: Response) => {
+router.get("/", authenticateToken, async (req: Request, res: Response) => {
 	try {
 		const rawPostId = normalizeParam(req.params["postId"]);
 
@@ -54,9 +51,9 @@ router.get("/", async (req: Request, res: Response) => {
 });
 
 /* -------------------------------------------------------
-   GET /api/posts/:postId/comments/tree
+   GET /api/posts/:postId/comments/tree - READ public & other under authentication 
 ------------------------------------------------------- */
-router.get("/tree", async (req: Request, res: Response) => {
+router.get("/tree", authenticateToken, async (req: Request, res: Response) => {
 	try {
 		const rawPostId = normalizeParam(req.params["postId"]);
 
@@ -95,9 +92,7 @@ router.get("/tree", async (req: Request, res: Response) => {
 		function serializeTree(node: TreeComment): SerializedComment {
 			const serialized = serializeComment(node, userId);
 
-			serialized.replies = node.replies
-				.filter((r) => !r.deleted)
-				.map(serializeTree);
+			serialized.replies = node.replies.filter((r) => !r.deleted).map(serializeTree);
 
 			return serialized;
 		}
@@ -135,9 +130,9 @@ router.post("/", requireAuth, async (req: Request, res: Response) => {
 		}
 
 		const normalizedParentId =
-			typeof parentId === "string" && Types.ObjectId.isValid(parentId) ?
-				toObjectId(parentId)
-			:	null;
+			typeof parentId === "string" && Types.ObjectId.isValid(parentId)
+				? toObjectId(parentId)
+				: null;
 
 		const comment = await Comment.create({
 			postId,
@@ -146,9 +141,7 @@ router.post("/", requireAuth, async (req: Request, res: Response) => {
 			parentId: normalizedParentId,
 		});
 
-		const populated = await Comment.findById(comment._id)
-			.populate("author", "name email")
-			.lean();
+		const populated = await Comment.findById(comment._id).populate("author", "name email").lean();
 
 		return res.status(201).json({
 			comment: serializeComment(populated!, userId),
@@ -173,9 +166,7 @@ router.post("/:id/like", requireAuth, async (req: Request, res: Response) => {
 		const commentId = toObjectId(rawId);
 		const userId = req.user!.userId;
 
-		const comment = await Comment.findById(commentId)
-			.populate("author", "name email")
-			.exec();
+		const comment = await Comment.findById(commentId).populate("author", "name email").exec();
 
 		if (!comment || comment.deleted) {
 			return res.status(404).json({ error: "Comment not found" });
@@ -192,9 +183,7 @@ router.post("/:id/like", requireAuth, async (req: Request, res: Response) => {
 		const alreadyLiked = likedBy.includes(userId);
 
 		if (alreadyLiked) {
-			comment.likedBy = comment.likedBy.filter(
-				(id) => id.toString() !== userId
-			);
+			comment.likedBy = comment.likedBy.filter((id) => id.toString() !== userId);
 		} else {
 			comment.likedBy.push(new Types.ObjectId(userId));
 		}
@@ -262,9 +251,7 @@ router.put("/:id", requireAuth, async (req: CommentRequest, res: Response) => {
 
 		await comment.save();
 
-		const populated = await Comment.findById(comment._id)
-			.populate("author", "name email")
-			.lean();
+		const populated = await Comment.findById(comment._id).populate("author", "name email").lean();
 
 		if (!populated) {
 			return res.status(500).json({ error: "Unable to update comment" });

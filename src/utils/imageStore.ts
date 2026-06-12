@@ -2,8 +2,15 @@ import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 
-const UPLOAD_DIR = path.resolve(process.cwd(), "public", "uploads", "images");
-const HASHES_FILE = path.join(UPLOAD_DIR, ".hashes.json");
+const IS_TEST = process.env["NODE_ENV"] === "test";
+
+const UPLOAD_DIR = IS_TEST
+	? path.resolve(process.cwd(), "tmp", "test-uploads", "images")
+	: path.resolve(process.cwd(), "public", "uploads", "images");
+
+const HASHES_FILE = IS_TEST
+	? path.resolve(process.cwd(), "tmp", "test-uploads", ".hashes.json")
+	: path.join(UPLOAD_DIR, ".hashes.json");
 
 type StoreResult = { filename: string; duplicate: boolean };
 
@@ -24,7 +31,7 @@ export async function storeImageAtomic(buffer: Buffer, originalName: string): Pr
 	const filename = `${hash}${ext}`;
 	const filePath = path.join(UPLOAD_DIR, filename);
 
-	let hashes: Record<string, { filename: string; createdAt: string }> = {};
+	let hashes: Record<string, { filename: string; createdAt: string }>;
 	try {
 		const raw = await fs.readFile(HASHES_FILE, "utf8").catch(() => "{}");
 		hashes = JSON.parse(raw || "{}");

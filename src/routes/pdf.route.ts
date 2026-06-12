@@ -5,13 +5,14 @@ import type { Browser } from "puppeteer";
 import { Post } from "../models/Post.js";
 import * as browserService from "../services/browserService.js";
 import type { PdfRequestBody } from "../types/index.js";
+import { authenticateToken } from "../middleware/requireAuth.js";
 
 const router: Router = Router();
 
 // ---------------------------------------------------------
 //   POST /api/pdf  (PUBLIC for published posts)
 // ---------------------------------------------------------
-router.post("/", async (req, res) => {
+router.post("/", authenticateToken, async (req, res) => {
 	const requestBody: PdfRequestBody = req.body;
 
 	const { postId, title } = requestBody;
@@ -22,10 +23,7 @@ router.post("/", async (req, res) => {
 	}
 
 	// Fetch post
-	const post = await Post.findById(postId)
-		.populate("author", "name email")
-		.lean()
-		.exec();
+	const post = await Post.findById(postId).populate("author", "name email").lean().exec();
 
 	if (!post) {
 		return res.status(404).json({ message: "Post not found" });
@@ -43,9 +41,7 @@ router.post("/", async (req, res) => {
 		post.author?._id?.toString() === (req as Request).user?.userId;
 
 	if (isDraft && !isAuthor) {
-		return res
-			.status(403)
-			.json({ message: "Not authorized to export this post" });
+		return res.status(403).json({ message: "Not authorized to export this post" });
 	}
 
 	// Prepare filename
@@ -77,9 +73,7 @@ router.post("/", async (req, res) => {
 		});
 
 		// Ensure frontend loaded
-		const ok = await page.evaluate(() => {
-			return !!document.querySelector("#export-ready");
-		});
+		const ok = (await page.$("#export-ready")) !== null;
 
 		if (!ok) {
 			throw new Error("frontend-not-ready");

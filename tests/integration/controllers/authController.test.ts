@@ -123,7 +123,7 @@ describe("authController (Integration)", () => {
 	});
 
 	it("returns 401 when refresh token is not found in DB", async () => {
-		const token = tokenService.generateRefreshToken("123");
+		const token = tokenService.generateRefreshToken("123", false);
 
 		const res = await request(app)
 			.post("/api/auth/refresh")
@@ -140,7 +140,7 @@ describe("authController (Integration)", () => {
 			role: "user",
 		});
 
-		const expiredToken = tokenService.generateRefreshToken(user._id.toString());
+		const expiredToken = tokenService.generateRefreshToken(user._id.toString(), false);
 
 		await RefreshToken.create({
 			token: expiredToken,
@@ -158,7 +158,7 @@ describe("authController (Integration)", () => {
 
 	it("returns 401 when user no longer exists", async () => {
 		const userId = "507f1f77bcf86cd799439011";
-		const token = tokenService.generateRefreshToken(userId);
+		const token = tokenService.generateRefreshToken(userId, false);
 
 		await RefreshToken.create({
 			token,
@@ -198,9 +198,10 @@ describe("authController (Integration)", () => {
 	it("logout: returns 500 when DB update fails", async () => {
 		const app = createAuthTestApp();
 
-		const token = tokenService.generateRefreshToken("123");
+		const token = tokenService.generateRefreshToken("123", false);
 
-		vi.spyOn(RefreshToken, "findOneAndUpdate").mockRejectedValueOnce(new Error("DB exploded"));
+		// clearTokens() now uses updateMany(), not findOneAndUpdate()
+		vi.spyOn(RefreshToken, "updateMany").mockRejectedValueOnce(new Error("DB exploded"));
 
 		const res = await request(app)
 			.post("/api/auth/logout")

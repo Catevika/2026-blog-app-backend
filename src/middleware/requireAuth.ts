@@ -15,6 +15,7 @@ export const authenticateToken = (req: Request, _res: Response, next: NextFuncti
 	const token = req.cookies?.[cookieName];
 
 	if (typeof token !== "string") {
+		req.user = null;
 		// No token: continue as anonymous
 		next();
 		return;
@@ -26,8 +27,9 @@ export const authenticateToken = (req: Request, _res: Response, next: NextFuncti
 			req.user = { userId: decoded.userId };
 		}
 	} catch {
+		req.user = null;
 		// Ignore verification errors for optional auth
-		// (do not attach req.user; continue as anonymous)
+		// (continue as anonymous)
 	} finally {
 		next();
 	}

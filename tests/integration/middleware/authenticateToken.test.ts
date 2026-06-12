@@ -18,7 +18,7 @@ describe("authenticateToken middleware", () => {
 		const res = await request(app).get("/test").expect(200);
 
 		expect(res.body.ok).toBe(true);
-		expect(res.body.user).toBeUndefined();
+		expect(res.body.user).toBeNull();
 	});
 
 	it("ignores invalid token and continues without setting req.user", async () => {
@@ -34,7 +34,7 @@ describe("authenticateToken middleware", () => {
 			.expect(200);
 
 		expect(res.body.ok).toBe(true);
-		expect(res.body.user).toBeUndefined();
+		expect(res.body.user).toBeNull();
 	});
 
 	it("sets req.user when token is valid", async () => {

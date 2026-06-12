@@ -3,8 +3,10 @@ import type { Request, Response } from "express";
 import {
 	ACCESS_COOKIE_NAME,
 	ACCESS_TOKEN_MAX_AGE,
+	cookieBase,
 	REFRESH_COOKIE_NAME,
 	REFRESH_TOKEN_MAX_AGE,
+	REFRESH_TOKEN_MAX_AGE_REMEMBER,
 } from "../config/authConfig.js";
 import { resetAuthRateLimit } from "../middleware/rate-limit.js";
 import { RefreshToken } from "../models/RefreshToken.js";
@@ -14,30 +16,26 @@ import { serializeUser } from "../utils/serializeUser.js";
 import { wrapAsync } from "../utils/wrapAsync.js";
 
 export const signup = wrapAsync(async (req: Request, res: Response) => {
-	const { email, password, name } = req.body;
+	const { email, password, name, rememberMe } = req.body;
 
 	if (!email || !password) {
 		return res.status(400).json({ message: "Email and password are required" });
 	}
 
-	const existing = await User.findOne({ email }).lean().exec();
+	const existing = await User.findOne({ email }).exec();
 	if (existing) {
 		return res.status(409).json({ message: "Email already exists" });
 	}
 
 	const passwordHash = await bcrypt.hash(password, 12);
-
 	const user = await User.create({ email, name, passwordHash, role: "user" });
 
-	// Ensure limiter reset is attempted even if token setting fails
 	try {
-		await tokenService.setTokens(res, user._id.toString());
+		await tokenService.setTokens(res, user._id.toString(), rememberMe === true);
 		return res.status(201).json({ user: serializeUser(user) });
 	} catch (e) {
-		// If token setting fails, still attempt to reset rate limiter and return error
 		console.error("[auth] signup setTokens threw:", e);
-		if (!res.headersSent)
-			res.status(500).json({ message: "Failed to set tokens" });
+		if (!res.headersSent) res.status(500).json({ message: "Failed to set tokens" });
 		return;
 	} finally {
 		try {
@@ -49,13 +47,13 @@ export const signup = wrapAsync(async (req: Request, res: Response) => {
 });
 
 export const login = wrapAsync(async (req: Request, res: Response) => {
-	const { email, password } = req.body;
+	const { email, password, rememberMe } = req.body;
 
 	if (!email || !password) {
 		return res.status(400).json({ message: "Email and password are required" });
 	}
 
-	const user = await User.findOne({ email }).lean().exec();
+	const user = await User.findOne({ email }).exec();
 	if (!user) {
 		return res.status(401).json({ message: "Invalid credentials" });
 	}
@@ -65,14 +63,12 @@ export const login = wrapAsync(async (req: Request, res: Response) => {
 		return res.status(401).json({ message: "Invalid credentials" });
 	}
 
-	// Ensure limiter reset is attempted even if token setting fails
 	try {
-		await tokenService.setTokens(res, user._id.toString());
+		await tokenService.setTokens(res, user._id.toString(), rememberMe === true);
 		return res.status(200).json({ user: serializeUser(user) });
 	} catch (e) {
 		console.error("[auth] login setTokens threw:", e);
-		if (!res.headersSent)
-			res.status(500).json({ message: "Failed to set tokens" });
+		if (!res.headersSent) res.status(500).json({ message: "Failed to set tokens" });
 		return;
 	} finally {
 		try {
@@ -83,11 +79,16 @@ export const login = wrapAsync(async (req: Request, res: Response) => {
 	}
 });
 
-export const logout = wrapAsync(async (req: Request, res: Response) => {
-	const refreshToken = req.cookies?.[REFRESH_COOKIE_NAME];
-	await tokenService.clearTokens(res, refreshToken);
-	return res.status(200).json({ message: "Logout successful" });
-});
+export const logout = async (req: Request, res: Response) => {
+	try {
+		const refreshToken = req.cookies?.[REFRESH_COOKIE_NAME];
+		await tokenService.clearTokens(res, refreshToken);
+
+		return res.status(200).json({ message: "Logout successful" });
+	} catch {
+		return res.status(500).json({ message: "Logout failed" });
+	}
+};
 
 export const refresh = wrapAsync(async (req: Request, res: Response) => {
 	const refreshToken = req.cookies?.[REFRESH_COOKIE_NAME];
@@ -110,40 +111,40 @@ export const refresh = wrapAsync(async (req: Request, res: Response) => {
 
 	const decoded = tokenService.verifyRefreshToken(refreshToken);
 	const userId = decoded.userId;
+	const rememberMe = decoded.rememberMe ?? dbToken.rememberMe;
 
 	await RefreshToken.findByIdAndUpdate(dbToken._id, { isValid: false }).exec();
 
-	const newRefreshToken = tokenService.generateRefreshToken(userId);
+	const newRefreshToken = tokenService.generateRefreshToken(userId, rememberMe);
 	await RefreshToken.create({
 		token: newRefreshToken,
 		userId,
-		expiresAt: new Date(Date.now() + REFRESH_TOKEN_MAX_AGE),
+		rememberMe,
+		expiresAt: new Date(
+			Date.now() + (rememberMe ? REFRESH_TOKEN_MAX_AGE_REMEMBER : REFRESH_TOKEN_MAX_AGE),
+		),
 		isValid: true,
 	});
 
 	const newAccessToken = tokenService.generateAccessToken(userId);
 
 	res.cookie(ACCESS_COOKIE_NAME, newAccessToken, {
-		...tokenService.cookieBase,
+		...cookieBase,
 		maxAge: ACCESS_TOKEN_MAX_AGE,
 		path: "/",
 	});
 
 	res.cookie(REFRESH_COOKIE_NAME, newRefreshToken, {
-		...tokenService.cookieBase,
-		maxAge: REFRESH_TOKEN_MAX_AGE,
+		...cookieBase,
+		maxAge: rememberMe ? REFRESH_TOKEN_MAX_AGE_REMEMBER : REFRESH_TOKEN_MAX_AGE,
 		path: "/",
 	});
 
-	const user = await User.findById(userId)
-		.select("email name role")
-		.lean()
-		.exec();
+	const user = await User.findById(userId).select("email name role").lean().exec();
 	if (!user) {
 		return res.status(401).json({ message: "User not found" });
 	}
 
-	// After successful refresh, attempt to reset limiter for this request (safe to call)
 	try {
 		await resetAuthRateLimit(req);
 	} catch (err) {
@@ -160,10 +161,7 @@ export const verify = wrapAsync(async (req: Request, res: Response) => {
 		return res.status(401).json({ message: "Unauthorized" });
 	}
 
-	const user = await User.findById(userId)
-		.select("email name role")
-		.lean()
-		.exec();
+	const user = await User.findById(userId).select("email name role").lean().exec();
 
 	if (!user) {
 		return res.status(401).json({ message: "User not found" });

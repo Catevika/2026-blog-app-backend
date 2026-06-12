@@ -15,16 +15,18 @@ export type AppEnv = {
 //------------------------------------------------------------
 // TOKEN
 //------------------------------------------------------------
-export interface IRefreshToken {
-	_id: Types.ObjectId;
+export interface IRefreshTokenDoc extends Document {
 	token: string;
 	userId: string;
+	rememberMe: boolean;
 	expiresAt: Date;
 	isValid: boolean;
 }
 
 export interface JwtPayload {
 	userId: string;
+	rememberMe?: boolean;
+	verifyAccessToken: boolean;
 }
 
 //------------------------------------------------------------
@@ -222,10 +224,7 @@ export type PostDeleteResponse =
 	  }
 	| { message: string };
 
-export type PostRestoreResponse =
-	| SerializedPost
-	| { error: string }
-	| { message: string };
+export type PostRestoreResponse = SerializedPost | { error: string } | { message: string };
 
 // ---------------------------------------------------------
 // 	PDF
@@ -245,6 +244,7 @@ export interface IComment {
 	postId: Types.ObjectId;
 	author: Types.ObjectId;
 	content: string;
+	liked: boolean;
 	likedBy: Types.ObjectId[];
 	likeCount: number;
 	parentId: Types.ObjectId | null;
@@ -272,23 +272,17 @@ export type TreeComment = Omit<IComment, "replies"> & {
 // 	COMMENT REQUEST TYPES
 // ---------------------------------------------------------
 
-export interface CommentRequest extends Express.Request {
+export interface CommentRequest {
 	params: {
 		postId: string;
 		id: string;
-	};
-	query: {
-		page?: string;
-		limit?: string;
 	};
 	body: {
 		content: string;
 		parentId?: string;
 		deleted?: boolean;
 	};
-	user?: {
-		userId: string;
-	};
+	user?: { userId: string; role?: string } | null;
 }
 
 // ---------------------------------------------------------

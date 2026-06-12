@@ -1,16 +1,22 @@
 export const AUTH = {
 	ACCESS_TOKEN_EXPIRES_IN: "15m",
-	REFRESH_TOKEN_EXPIRES_IN: "30d",
 
-	ACCESS_TOKEN_MAX_AGE: 900_000, // (15 * 60 * 1000) = 15 minutes,
-	REFRESH_TOKEN_MAX_AGE: 2_592_000_000, // (30 * 24 * 60 * 60 * 1000) = 30 days,
+	// Default refresh token lifetime (normal login)
+	REFRESH_TOKEN_EXPIRES_IN: "1d",
+	REFRESH_TOKEN_MAX_AGE: 1 * 24 * 60 * 60 * 1000, // 1 day
+
+	// Remember-me refresh token lifetime
+	REFRESH_TOKEN_EXPIRES_IN_REMEMBER: "60d",
+	REFRESH_TOKEN_MAX_AGE_REMEMBER: 60 * 24 * 60 * 60 * 1000, // 60 days
+
+	ACCESS_TOKEN_MAX_AGE: 15 * 60 * 1000, // 15 minutes
 
 	ACCESS_COOKIE_NAME: "accessToken",
 	REFRESH_COOKIE_NAME: "refreshToken",
 
 	COOKIE_OPTIONS: {
 		httpOnly: true,
-		sameSite: process.env?.NODE_ENV === "production" ? "strict" : "lax",
-		secure: process.env?.NODE_ENV === "production",
+		sameSite: process.env?.["NODE_ENV"] === "production" ? "strict" : "lax",
+		secure: process.env?.["NODE_ENV"] === "production",
 	},
 } as const;

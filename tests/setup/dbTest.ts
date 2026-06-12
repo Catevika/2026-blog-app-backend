@@ -1,6 +1,5 @@
 process.env.NODE_ENV = process.env.NODE_ENV ?? testConfig.NODE_ENV;
-process.env.ACCESS_TOKEN_SECRET =
-	process.env.ACCESS_TOKEN_SECRET ?? testConfig.ACCESS_TOKEN_SECRET;
+process.env.ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET ?? testConfig.ACCESS_TOKEN_SECRET;
 process.env.REFRESH_TOKEN_SECRET =
 	process.env.REFRESH_TOKEN_SECRET ?? testConfig.REFRESH_TOKEN_SECRET;
 process.env.REFRESH_TOKEN_SECRET =

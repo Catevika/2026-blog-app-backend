@@ -27,11 +27,7 @@ function getLimiterKey(req: Request) {
 	return `login:${ip}:${email}`;
 }
 
-export async function authRateLimit(
-	req: Request,
-	res: Response,
-	next: NextFunction
-) {
+export async function authRateLimit(req: Request, res: Response, next: NextFunction) {
 	if (ENV.VITEST === "true" && ENV.TEST_RATE_LIMITER !== "true") {
 		return next();
 	}

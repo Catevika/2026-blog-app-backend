@@ -1,8 +1,6 @@
 import type { CommentValidationErrors } from "../types/index.js";
 
-export const validateCommentData = (
-	content: unknown
-): CommentValidationErrors => {
+export const validateCommentData = (content: unknown): CommentValidationErrors => {
 	const errors: CommentValidationErrors = {};
 
 	// Must be a string

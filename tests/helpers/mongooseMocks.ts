@@ -37,10 +37,6 @@ export function mockExists(model: any, result: unknown) {
 }
 
 /* Mock a method to reject (simulate DB error) */
-export function mockMethodRejects(
-	model: any,
-	methodName: string,
-	err: unknown
-) {
+export function mockMethodRejects(model: any, methodName: string, err: unknown) {
 	return vi.spyOn(model, methodName as any).mockRejectedValue(err);
 }

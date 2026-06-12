@@ -21,4 +21,3 @@ export {
 	RATE_LIMIT_MS,
 	SEARCH_LIMIT,
 };
-

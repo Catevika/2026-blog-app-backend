@@ -33,13 +33,10 @@ const postSchema = new Schema<IPost, PostModel>(
 		likeCount: { type: Number, default: 0, min: 0 },
 		deleted: { type: Boolean, default: false, index: true },
 	},
-	{ timestamps: true }
+	{ timestamps: true },
 );
 
-postSchema.index(
-	{ slug: 1 },
-	{ unique: true, partialFilterExpression: { deleted: false } }
-);
+postSchema.index({ slug: 1 }, { unique: true, partialFilterExpression: { deleted: false } });
 
 postSchema.pre("save", function () {
 	this.likeCount = (this.likedBy ?? []).length;
@@ -62,16 +59,13 @@ postSchema.pre("save", function () {
 
 postSchema.statics["computeSuggestion"] = async function (
 	this: PostModel,
-	base: string
+	base: string,
 ): Promise<string> {
 	const canonical = slugifyFinal(base);
 	if (!canonical) return `post-${Date.now()}`;
 
 	const regex = new RegExp(`^${canonical}(-\\d+)?$`);
-	const matches = await this.find(
-		{ slug: { $regex: regex }, deleted: false },
-		{ slug: 1 }
-	)
+	const matches = await this.find({ slug: { $regex: regex }, deleted: false }, { slug: 1 })
 		.lean()
 		.exec();
 

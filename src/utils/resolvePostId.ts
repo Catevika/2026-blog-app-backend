@@ -11,10 +11,7 @@ type ResolveOptions = {
  * Resolve a raw identifier (id, slug, or URL/path) to a canonical post _id string.
  * Throws InvalidPostIdError or PostNotFoundError so callers can handle them explicitly.
  */
-export async function resolvePostId(
-	raw: string,
-	options: ResolveOptions = {}
-): Promise<string> {
+export async function resolvePostId(raw: string, options: ResolveOptions = {}): Promise<string> {
 	if (!raw || typeof raw !== "string") {
 		throw new InvalidPostIdError();
 	}
@@ -35,19 +32,16 @@ export async function resolvePostId(
 
 	const useSlugLookup = !!options.preferSlug || !isObjectId;
 
-	const query =
-		useSlugLookup ?
-			{ slug, deleted: false }
-		:	{ _id: new Types.ObjectId(candidate), deleted: false };
+	const query = useSlugLookup
+		? { slug, deleted: false }
+		: { _id: new Types.ObjectId(candidate), deleted: false };
 
 	const post = await Post.findOne(query).lean().exec();
 
 	if (!post) {
 		// If we tried ObjectId lookup and failed, fall back to slug lookup (unless preferSlug)
 		if (!useSlugLookup && !options.preferSlug) {
-			const fallback = await Post.findOne({ slug, deleted: false })
-				.lean()
-				.exec();
+			const fallback = await Post.findOne({ slug, deleted: false }).lean().exec();
 			if (fallback) return fallback._id.toString();
 		}
 		throw new PostNotFoundError();

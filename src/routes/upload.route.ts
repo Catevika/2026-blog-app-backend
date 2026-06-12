@@ -13,9 +13,7 @@ router.post("/image", uploadImage, async (req: Request, res: Response) => {
 
 	const file = (req as Request & { file?: Express.Multer.File }).file;
 	if (!file) {
-		return res
-			.status(400)
-			.json({ success: false, message: "No file uploaded" });
+		return res.status(400).json({ success: false, message: "No file uploaded" });
 	}
 
 	const tempPath = file.path;
@@ -26,9 +24,7 @@ router.post("/image", uploadImage, async (req: Request, res: Response) => {
 		const validation = validateMagicBytes(buffer);
 		if (!validation.valid) {
 			await fs.unlink(tempPath).catch(() => {});
-			return res
-				.status(400)
-				.json({ success: false, message: validation.reason });
+			return res.status(400).json({ success: false, message: validation.reason });
 		}
 
 		const result = await storeImageAtomic(buffer, file.originalname);
@@ -46,9 +42,7 @@ router.post("/image", uploadImage, async (req: Request, res: Response) => {
 	} catch (err) {
 		console.error("Upload error:", err);
 		if (typeof tempPath === "string") await fs.unlink(tempPath).catch(() => {});
-		return res
-			.status(500)
-			.json({ success: false, message: "An error occurred" });
+		return res.status(500).json({ success: false, message: "An error occurred" });
 	}
 });
 
@@ -59,11 +53,7 @@ router.use((err: unknown, _req: Request, res: Response, _next: unknown) => {
 	}
 	if (err instanceof Error) {
 		const msg = err.message.toLowerCase();
-		if (
-			msg.includes("invalid") ||
-			msg.includes("file") ||
-			msg.includes("extension")
-		) {
+		if (msg.includes("invalid") || msg.includes("file") || msg.includes("extension")) {
 			return res.status(400).json({ success: false, message: err.message });
 		}
 	}

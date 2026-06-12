@@ -19,9 +19,7 @@ describe("User model", () => {
 			throw new Error("Expected validation error but none was thrown");
 		} catch (err: unknown) {
 			expect(isValidationError(err)).toBe(true);
-			expect(
-				err && isValidationError(err) && err.errors["email"]
-			).toBeDefined();
+			expect(err && isValidationError(err) && err.errors["email"]).toBeDefined();
 		}
 	});
 
@@ -31,9 +29,7 @@ describe("User model", () => {
 			throw new Error("Expected validation error but none was thrown");
 		} catch (err: unknown) {
 			expect(isValidationError(err)).toBe(true);
-			expect(
-				err && isValidationError(err) && err.errors["passwordHash"]
-			).toBeDefined();
+			expect(err && isValidationError(err) && err.errors["passwordHash"]).toBeDefined();
 		}
 	});
 

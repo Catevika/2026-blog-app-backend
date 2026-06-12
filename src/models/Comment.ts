@@ -31,7 +31,7 @@ const commentSchema = new Schema<IComment>(
 
 		deleted: { type: Boolean, default: false, index: true },
 	},
-	{ timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
+	{ timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } },
 );
 
 // Keep likeCount consistent
@@ -59,5 +59,4 @@ commentSchema.index({ author: 1, createdAt: -1 });
 commentSchema.index({ postId: 1, depth: 1 });
 
 export const Comment: Model<IComment> =
-	mongoose.models["Comment"] ||
-	mongoose.model<IComment>("Comment", commentSchema);
+	mongoose.models["Comment"] || mongoose.model<IComment>("Comment", commentSchema);

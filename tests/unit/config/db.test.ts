@@ -32,12 +32,9 @@ describe("connectDB", () => {
 		const { connectDB } = await import("../../../src/config/db.js");
 		const conn = await connectDB();
 
-		expect(connectSpy).toHaveBeenCalledWith(
-			"mongodb://localhost:27017/testdb",
-			{
-				maxPoolSize: 10,
-			}
-		);
+		expect(connectSpy).toHaveBeenCalledWith("mongodb://localhost:27017/testdb", {
+			maxPoolSize: 10,
+		});
 
 		expect(conn.connection?.readyState).toBe(1);
 	});

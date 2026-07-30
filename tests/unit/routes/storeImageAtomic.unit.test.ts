@@ -42,7 +42,7 @@ describe("storeImageAtomic", () => {
 	it("detects duplicate image", async () => {
 		const buf = Buffer.from("abc");
 
-		// REAL SHA‑256 hash of "abc"
+		// REAL SHA-256 hash of "abc"
 		const sha256 = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad";
 
 		vi.mocked(fs.readFile).mockResolvedValue(

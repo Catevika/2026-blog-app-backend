@@ -21,7 +21,7 @@ export function generateAccessToken(userId: string): string {
 
 export function generateRefreshToken(userId: string, rememberMe: boolean): string {
 	const maxAge = rememberMe ? REFRESH_TOKEN_MAX_AGE_REMEMBER : REFRESH_TOKEN_MAX_AGE;
-	return jwt.sign({ userId, rememberMe }, REFRESH_TOKEN_SECRET, {
+	return jwt.sign({ userId, rememberMe, jti: crypto.randomUUID() }, REFRESH_TOKEN_SECRET, {
 		expiresIn: maxAge / 1000,
 	});
 }

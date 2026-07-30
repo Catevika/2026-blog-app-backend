@@ -1,20 +1,20 @@
 # 🚀 **2026 Blog API — Backend Documentation**
 
-A modern, production‑grade backend powering the **2026 Blog App**.  
+A modern, production-grade backend powering the **2026 Blog App**.  
 Built with **Node.js**, **Express**, **TypeScript**, **MongoDB**, and a fully tested architecture including **authentication**, **file uploads**, **PDF generation**, and **comment trees**.
 
-This backend is designed with **real‑world engineering practices**:
+This backend is designed with **real-world engineering practices**:
 
 - strict TypeScript typing
 - layered architecture
-- integration‑first testing
+- integration-first testing
 - secure authentication
 - clean error handling
 - scalable route design
-- Puppeteer‑based PDF export
+- Puppeteer-based PDF export
 - image upload & validation
 - rate limiting
-- environment‑driven configuration
+- environment-driven configuration
 
 ---
 
@@ -33,7 +33,7 @@ This backend is designed with **real‑world engineering practices**:
 
 - Vitest
 - Supertest
-- In‑memory MongoDB
+- In-memory MongoDB
 - Full integration test suite
 - 80%+ integration coverage
 
@@ -67,7 +67,7 @@ The backend follows a **clean separation of concerns**:
 - **Routes** handle HTTP
 - **Controllers** handle business logic
 - **Models** handle persistence
-- **Middleware** handles cross‑cutting concerns
+- **Middleware** handles cross-cutting concerns
 - **Services** handle external systems
 - **Utils** handle pure logic
 
@@ -132,11 +132,11 @@ One of the flagship features of this backend.
 
 ## 🧪 **Testing Strategy**
 
-This backend uses a **realistic, production‑grade testing strategy**:
+This backend uses a **realistic, production-grade testing strategy**:
 
 ### ✔ Integration-first
 
-All routes are tested end‑to‑end using:
+All routes are tested end-to-end using:
 
 - in-memory MongoDB
 - Supertest

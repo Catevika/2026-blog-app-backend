@@ -48,16 +48,16 @@
     "mongoose": "^9.9.0",
     "multer": "^2.2.0",
     "puppeteer": "^25.4.0",
-    "rate-limiter-flexible": "^11.2.0"
-  },
-  "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "@express-rate-limit/tsconfig": "^1.0.5",
+    "rate-limiter-flexible": "^11.2.0",
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/multer": "^2.2.0",
+    "@types/multer": "^2.2.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@express-rate-limit/tsconfig": "^1.0.5",
     "@types/supertest": "^7.2.1",
     "@vitest/coverage-v8": "^4.1.10",
     "@vitest/ui": "^4.1.10",

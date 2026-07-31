@@ -28,9 +28,9 @@
     "coverage:view": "npm run coverage:merge && start coverage/merged/index.html",
     "test:watch:unit": "vitest --config vitest.unit.config.ts --watch",
     "test:watch:integration": "vitest --config vitest.integration.config.ts --watch",
-    "start": "NODE_ENV=production node dist/server.js",
+    "start": "node dist/server.js",
     "build": "tsc -p tsconfig.build.json",
-    "preview": "NODE_ENV=production node dist/server.js",
+    "preview": "node dist/server.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write ."

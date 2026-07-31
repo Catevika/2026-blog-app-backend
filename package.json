@@ -36,6 +36,7 @@
     "format": "prettier --write ."
   },
   "dependencies": {
+    "@types/node": "^26.1.2",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
@@ -57,7 +58,6 @@
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.2.0",
-    "@types/node": "^26.1.2",
     "@types/supertest": "^7.2.1",
     "@vitest/coverage-v8": "^4.1.10",
     "@vitest/ui": "^4.1.10",

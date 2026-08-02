@@ -1,0 +1,54 @@
+name: CI/CD Backend Express
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24.18.0"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Vitest tests
+        run: npm run test:all
+
+      - name: Trigger deployment to Render
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          # 1. Check if the secret exists in GitHub
+          if [ -z "$RENDER_HOOK" ]; then
+            echo "❌ Error: RENDER_DEPLOY_HOOK is missing from GitHub Repository Secrets."
+            exit 1
+          fi
+
+          echo "🚀 Triggering Render deployment..."
+
+          # 2. Make the request and extract the HTTP status code
+          HTTP_STATUS=$(curl -s -o response.txt -w "%{http_code}" -X POST "$RENDER_HOOK")
+
+          echo "Render API Response Code: $HTTP_STATUS"
+          echo "Response Body:"
+          cat response.txt
+
+          # 3. Fail the pipeline if Render returns an error code (e.g., 400, 401)
+          if [ "$HTTP_STATUS" -ne 200 ] && [ "$HTTP_STATUS" -ne 201 ]; then
+            echo "❌ Error: Render hook call was invalid or unauthorized!"
+            exit 1
+          fi
+
+          echo "✅ Deployment successfully triggered on Render!"
+        env:
+          RENDER_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}

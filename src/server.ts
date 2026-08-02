@@ -13,19 +13,17 @@ import uploadRouter from "./routes/upload.route.js";
 
 const app = express();
 
-// 🚀 CONFIGURATION CORS DYNAMIQUE ET SÉCURISÉE
 const allowedOrigins = [
-	ENV.CORS_ORIGIN, // Votre domaine de production (ex: Vercel)
-	"http://localhost:5173", // Développement local standard
-	"http://127.0.0.1:5173", // Alternative loopback local
-	"http://localhost:4173", // Aperçu (preview) de production en local
-	"http://127.0.0.1:4173", // 🎯 Requis pour le runner Playwright sur GitHub Actions
+	ENV.CORS_ORIGIN,
+	"http://localhost:5173",
+	"http://127.0.0.1:5173",
+	"http://localhost:4173",
+	"http://127.0.0.1:4173",
 ];
 
 app.use(
 	cors({
 		origin: (origin, callback) => {
-			// Autoriser les requêtes sans origine (comme curl, Postman ou les tâches internes)
 			if (!origin) return callback(null, true);
 
 			if (allowedOrigins.includes(origin) || ENV.NODE_ENV === "test") {

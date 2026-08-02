@@ -24,6 +24,9 @@ jobs:
 
       - name: Run Vitest tests
         run: npm run test:all
+        env:
+          # Injects a mock URI so src/config/db.ts doesn't crash during unit test imports
+          MONGO_URI: "mongodb://localhost:27017/test-ci"
 
       - name: Trigger deployment to Render
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'

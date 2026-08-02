@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 import { app } from "../setup/appTest.js";
 
 describe("server", () => {
-	it("responds to /health", async () => {
-		const res = await request(app).get("/health");
+	it("responds to /api/health", async () => {
+		const res = await request(app).get("/api/health");
 		expect(res.status).toBe(200);
 		expect(res.body).toEqual({ status: "ok" });
 	});

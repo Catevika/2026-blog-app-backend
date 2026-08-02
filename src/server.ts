@@ -29,7 +29,7 @@ app.use("/uploads", express.static(path.join(process.cwd(), "public/uploads")));
 
 app.use("/api/pdf", pdfRouter);
 
-app.get("/health", (_req, res) => {
+app.get("/api/health", (_req, res) => {
 	res.json({
 		status: "ok",
 	});

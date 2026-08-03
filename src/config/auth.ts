@@ -17,6 +17,11 @@ export const AUTH = {
 	COOKIE_OPTIONS: {
 		httpOnly: true,
 		secure: process.env?.["NODE_ENV"] === "production" ? true : false,
-		sameSite: process.env?.["NODE_ENV"] === "production" ? "strict" : "none",
+		sameSite:
+			process.env?.["NODE_ENV"] === "production"
+				? "none"
+				: process.env?.["NODE_ENV"] === "test"
+					? "lax"
+					: "strict",
 	},
 } as const;

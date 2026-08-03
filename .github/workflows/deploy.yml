@@ -10,8 +10,9 @@ jobs:
   test-and-deploy:
     runs-on: ubuntu-latest
     steps:
+      # 🚀 UPGRADED: Updated to the native Node 24 compliant v6 engine
       - name: Checkout repository code
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v6.0.3
 
       - name: Setup Node.js environment
         uses: actions/setup-node@v4.1.0

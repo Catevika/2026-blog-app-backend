@@ -17,9 +17,11 @@ const allowedOrigins = [
 	ENV.CORS_ORIGIN,
 	"http://localhost:5173",
 	"http://127.0.0.1:5173",
-	"https://2026-catevika-blog-frontend.vercel.app/",
+	"https://2026-catevika-blog-frontend.vercel.app",
 	"http://localhost:4173",
 	"http://127.0.0.1:4173",
+	"http://localhost:4000",
+	"http://127.0.0.1:4000",
 ];
 
 app.use(

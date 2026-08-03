@@ -45,7 +45,7 @@ describe("tokenService (Unit)", () => {
 		// secure depends on NODE_ENV
 		expect(typeof cookieBase.secure).toBe("boolean");
 
-		// sameSite is "none" in production, "strict" for test
-		expect(["none", "strict"]).toContain(cookieBase.sameSite);
+		// sameSite is "none" in production, "lax" otherwise
+		expect(["none", "lax"]).toContain(cookieBase.sameSite);
 	});
 });

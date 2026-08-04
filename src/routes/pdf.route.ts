@@ -67,7 +67,9 @@ router.post("/", authenticateToken, async (req, res) => {
 		await page.setViewport({ width: 1280, height: 900 });
 
 		// Load your frontend export page
-		await page.goto(`http://localhost:5173/export/${postId}`, {
+		const frontendBaseUrl = process.env["FRONTEND_URL"] ?? "http://localhost:5173";
+
+		await page.goto(`${frontendBaseUrl}/export/${postId}`, {
 			waitUntil: "networkidle0",
 			timeout: 15000,
 		});

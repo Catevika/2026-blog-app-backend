@@ -30,7 +30,3 @@ README.md
 
 # Puppeteer cache
 .puppeteer/
-
-# Temporary files
-tmp/
-temp/

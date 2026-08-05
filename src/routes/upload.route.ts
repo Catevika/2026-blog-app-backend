@@ -1,63 +1,60 @@
 import type { Request, Response } from "express";
 import { Router } from "express";
 import multer from "multer";
-import fs from "node:fs/promises";
 import { uploadImage } from "../middleware/uploadImage.js";
-import { storeImageAtomic } from "../utils/imageStore.js";
-import { validateMagicBytes } from "../utils/imageValidator.js";
 
 const router: Router = Router();
 
 router.post("/image", uploadImage, async (req: Request, res: Response) => {
-	const base = `${req.protocol}://${req.get("host")}`;
-
-	const file = (req as Request & { file?: Express.Multer.File }).file;
-	if (!file) {
-		return res.status(400).json({ success: false, message: "No file uploaded" });
-	}
-
-	const tempPath = file.path;
-
 	try {
-		const buffer = await fs.readFile(tempPath);
+		const file = req.file;
 
-		const validation = validateMagicBytes(buffer);
-		if (!validation.valid) {
-			await fs.unlink(tempPath).catch(() => {});
-			return res.status(400).json({ success: false, message: validation.reason });
+		if (!file) {
+			return res.status(400).json({ success: false, message: "No file uploaded" });
 		}
 
-		const result = await storeImageAtomic(buffer, file.originalname);
+		const legacyFile = file as any;
+		const permanentCloudUrl = legacyFile.secure_url || legacyFile.url;
+		const filename = legacyFile.public_id || "image";
 
-		await fs.unlink(tempPath).catch(() => {});
+		if (!permanentCloudUrl) {
+			console.error(
+				"❌ Multer-Cloudinary version mismatch: URL keys not found on file object:",
+				file,
+			);
+			return res.status(500).json({
+				success: false,
+				message: "Image stored on cloud, but Express failed to retrieve the public URL.",
+			});
+		}
 
 		return res.json({
 			success: true,
 			data: {
-				filename: result.filename,
-				url: `${base}/uploads/images/${result.filename}`,
-				duplicate: result.duplicate,
+				filename: filename,
+				url: permanentCloudUrl,
+				duplicate: false,
 			},
 		});
 	} catch (err) {
-		console.error("Upload error:", err);
-		if (typeof tempPath === "string") await fs.unlink(tempPath).catch(() => {});
-		return res.status(500).json({ success: false, message: "An error occurred" });
+		console.error("Cloudinary upload route execution error:", err);
+		return res.status(500).json({ success: false, message: "An error occurred during upload" });
 	}
 });
 
-// Multer / upload error handler
+// Multer pipeline error configuration handler
 router.use((err: unknown, _req: Request, res: Response, _next: unknown) => {
+	console.error("❌ DETECTED BACKEND UPLOAD ERROR:", err);
+
 	if (err instanceof multer.MulterError) {
 		return res.status(400).json({ success: false, message: err.message });
 	}
+
 	if (err instanceof Error) {
-		const msg = err.message.toLowerCase();
-		if (msg.includes("invalid") || msg.includes("file") || msg.includes("extension")) {
-			return res.status(400).json({ success: false, message: err.message });
-		}
+		return res.status(500).json({ success: false, message: err.message });
 	}
-	return res.status(500).json({ success: false, message: "Upload failed" });
+
+	return res.status(500).json({ success: false, message: "Upload operation failed" });
 });
 
 export default router;

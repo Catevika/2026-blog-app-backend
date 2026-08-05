@@ -36,8 +36,14 @@
     "format": "prettier --write ."
   },
   "dependencies": {
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/multer": "^2.2.0",
     "@types/node": "^26.1.2",
     "bcryptjs": "^3.0.3",
+    "cloudinary": "^2.10.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
@@ -47,13 +53,9 @@
     "mongodb": "^7.5.0",
     "mongoose": "^9.9.1",
     "multer": "^2.2.0",
-    "puppeteer": "^25.4.0",
-    "rate-limiter-flexible": "^11.2.0",
-    "@types/cookie-parser": "^1.4.10",
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.6",
-    "@types/jsonwebtoken": "^9.0.10",
-    "@types/multer": "^2.2.0"
+    "multer-storage-cloudinary": "^2.2.1",
+    "puppeteer": "^25.5.0",
+    "rate-limiter-flexible": "^11.2.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -67,15 +69,16 @@
     "mongodb-memory-server": "^11.2.0",
     "prettier": "^3.9.6",
     "supertest": "^7.2.2",
-    "tsx": "^4.23.1",
+    "tsx": "^4.23.8",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.65.0",
+    "typescript-eslint": "^8.66.0",
     "vitest": "^4.1.10",
     "vitest-coverage-merge": "^0.2.0"
   },
   "allowScripts": {
     "mongodb-memory-server@11.2.0": true,
     "esbuild@0.28.1": true,
-    "puppeteer@25.4.0": true
+    "puppeteer@25.4.0": true,
+    "core-js@3.50.0": true
   }
 }

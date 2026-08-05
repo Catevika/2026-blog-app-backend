@@ -66,11 +66,14 @@ router.post("/", authenticateToken, async (req, res) => {
 
 		await page.setViewport({ width: 1280, height: 900 });
 
-		// Load your frontend export page
+		// Dynamic extraction of the production frontend routing target configuration
 		const frontendBaseUrl = process.env["FRONTEND_URL"] ?? "http://localhost:5173";
 
+		// Load your frontend export page
 		await page.goto(`${frontendBaseUrl}/export/${postId}`, {
-			waitUntil: "networkidle0",
+			// Changed from networkidle0 to networkidle2 to accommodate external
+			// Cloudinary image streaming connections without timing out prematurely
+			waitUntil: "networkidle2",
 			timeout: 15000,
 		});
 

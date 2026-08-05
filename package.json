@@ -78,7 +78,7 @@
   "allowScripts": {
     "mongodb-memory-server@11.2.0": true,
     "esbuild@0.28.1": true,
-    "puppeteer@25.4.0": true,
-    "core-js@3.50.0": true
+    "core-js@3.50.0": true,
+    "puppeteer@25.5.0": true
   }
 }

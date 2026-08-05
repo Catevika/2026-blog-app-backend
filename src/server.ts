@@ -2,7 +2,6 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import "dotenv/config";
 import express from "express";
-import path from "node:path";
 import { ENV } from "./config/env.js";
 import { startServer } from "./config/startServer.js";
 import authRouter from "./routes/auth.route.js";
@@ -12,6 +11,9 @@ import postRouter from "./routes/post.route.js";
 import uploadRouter from "./routes/upload.route.js";
 
 const app = express();
+
+// REQUIRED when using Vite proxy, Nginx, Render, Railway, etc.
+app.set("trust proxy", true);
 
 const allowedOrigins = [
 	ENV.CORS_ORIGIN,
@@ -39,29 +41,27 @@ app.use(
 	}),
 );
 
-app.use(express.json());
+app.options("*splat", cors());
 
-// REQUIRED when using Vite proxy, Nginx, Render, Railway, etc.
-app.set("trust proxy", true);
+// Raise body parser limit constraints to prevent '413 Payload Too Large'
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
 app.use(cookieParser());
 
+// API Endpoints
 app.use("/api/upload", uploadRouter);
-
-app.use(express.static(path.join(process.cwd(), "public")));
-app.use("/uploads", express.static(path.join(process.cwd(), "public/uploads")));
-
 app.use("/api/pdf", pdfRouter);
+app.use("/api/auth", authRouter);
+app.use("/api/posts", postRouter);
+app.use("/api/posts/:postId/comments", commentRouter);
 
+// Health Check for Render deployment monitoring
 app.get("/api/health", (_req, res) => {
 	res.json({
 		status: "ok",
 	});
 });
-
-app.use("/api/auth", authRouter);
-app.use("/api/posts", postRouter);
-app.use("/api/posts/:postId/comments", commentRouter);
 
 if (ENV.NODE_ENV !== "test") {
 	try {

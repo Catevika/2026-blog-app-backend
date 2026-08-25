@@ -6,7 +6,6 @@ import {
 	FEED_TOTAL_LIMIT,
 	POSTS_PER_PAGE,
 	POSTS_TOTAL_LIMIT,
-	SEARCH_LIMIT,
 } from "./post.js";
 import { RATE_LIMIT_MS } from "./rate-limit.js";
 
@@ -19,5 +18,4 @@ export {
 	POSTS_PER_PAGE,
 	POSTS_TOTAL_LIMIT,
 	RATE_LIMIT_MS,
-	SEARCH_LIMIT,
 };

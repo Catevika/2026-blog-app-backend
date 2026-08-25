@@ -4,7 +4,7 @@ import { Types } from "mongoose";
 import { app } from "../../setup/appTest.js";
 import { createTestUser } from "../../factories/userFactory.js";
 import { Post } from "../../../src/models/Post.js";
-import { POSTS_PER_PAGE, SEARCH_LIMIT, FAVORITES_LIMIT } from "../../../src/config/post.js";
+import { POSTS_PER_PAGE, FAVORITES_LIMIT } from "../../../src/config/post.js";
 
 describe("Posts read/list/feed/favorites integration tests", () => {
 	it("GET /api/posts lists posts and supports search", async () => {
@@ -43,6 +43,15 @@ describe("Posts read/list/feed/favorites integration tests", () => {
 		const s = await request(app).get("/api/posts").query({ search: "banana" }).expect(200);
 		expect(s.body.docs.length).toBeGreaterThanOrEqual(1);
 		expect(s.body.docs[0].title.toLowerCase()).toContain("banana");
+
+		const byAuthor = await request(app)
+			.get("/api/posts")
+			.query({ search: "admin test user" })
+			.expect(200);
+		expect(byAuthor.body.docs).toHaveLength(2);
+		expect(byAuthor.body.docs.every((post: any) => post.author.name === "Admin Test User")).toBe(
+			true,
+		);
 	});
 
 	it("GET /api/posts supports status, deleted and author filters", async () => {
@@ -100,16 +109,16 @@ describe("Posts read/list/feed/favorites integration tests", () => {
 		);
 	});
 
-	it("GET /api/posts enforces SEARCH_LIMIT when search is active", async () => {
+	it("GET /api/posts paginates all matching search results", async () => {
 		const author = await createTestUser();
 
 		const docs = [];
-		for (let i = 0; i < SEARCH_LIMIT + 5; i++) {
+		for (let i = 0; i < POSTS_PER_PAGE * 2 + 1; i++) {
 			docs.push({
-				title: `Post ${i}`,
-				slug: `post-${i}`,
+				title: `Searchable Post ${i}`,
+				slug: `searchable-post-${i}`,
 				locked: true,
-				content: "search me",
+				content: "searchable content",
 				status: "published",
 				deleted: false,
 				author: new Types.ObjectId(author.user._id),
@@ -119,9 +128,24 @@ describe("Posts read/list/feed/favorites integration tests", () => {
 		}
 		await Post.insertMany(docs);
 
-		const res = await request(app).get("/api/posts").query({ search: "Post" }).expect(200);
+		const page1 = await request(app)
+			.get("/api/posts")
+			.query({ search: "searchable", page: 1 })
+			.expect(200);
+		const page2 = await request(app)
+			.get("/api/posts")
+			.query({ search: "searchable", page: 2 })
+			.expect(200);
 
-		expect(res.body.pagination.totalDocs).toBeLessThanOrEqual(SEARCH_LIMIT);
+		expect(page1.body.docs).toHaveLength(POSTS_PER_PAGE);
+		expect(page2.body.docs).toHaveLength(POSTS_PER_PAGE);
+		expect(page1.body.pagination.totalDocs).toBe(POSTS_PER_PAGE * 2 + 1);
+		expect(page1.body.pagination.totalPages).toBe(3);
+		expect(page1.body.pagination.hasNextPage).toBe(true);
+		expect(page2.body.pagination.hasPrevPage).toBe(true);
+		expect(page1.body.docs.map((post: any) => post.id)).not.toEqual(
+			page2.body.docs.map((post: any) => post.id),
+		);
 	});
 
 	it("GET /api/posts supports pagination", async () => {
@@ -189,6 +213,39 @@ describe("Posts read/list/feed/favorites integration tests", () => {
 		const s = await request(app).get("/api/posts/feed").query({ search: "another" }).expect(200);
 		expect(s.body.docs.length).toBeGreaterThanOrEqual(1);
 		expect(s.body.docs[0].title.toLowerCase()).toContain("another");
+	});
+
+	it("GET /api/posts/feed paginates all matching search results", async () => {
+		const author = await createTestUser();
+
+		await Post.insertMany(
+			Array.from({ length: POSTS_PER_PAGE + 1 }, (_, index) => ({
+				title: `Feed Searchable ${index}`,
+				slug: `feed-searchable-${index}`,
+				locked: false,
+				content: "feed searchable content",
+				status: "published",
+				deleted: false,
+				author: new Types.ObjectId(author.user._id),
+				likedBy: [],
+				likeCount: 0,
+			})),
+		);
+
+		const page1 = await request(app)
+			.get("/api/posts/feed")
+			.query({ search: "feed searchable", page: 1 })
+			.expect(200);
+		const page2 = await request(app)
+			.get("/api/posts/feed")
+			.query({ search: "feed searchable", page: 2 })
+			.expect(200);
+
+		expect(page1.body.docs).toHaveLength(POSTS_PER_PAGE);
+		expect(page2.body.docs).toHaveLength(1);
+		expect(page1.body.pagination.totalDocs).toBe(POSTS_PER_PAGE + 1);
+		expect(page1.body.pagination.totalPages).toBe(2);
+		expect(page2.body.pagination.hasNextPage).toBe(false);
 	});
 
 	// ------------------ favorites ------------------

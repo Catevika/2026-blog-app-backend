@@ -111,8 +111,9 @@ export type PostFilter = {
 	$or?: (
 		| { title: { $regex: string; $options: string }; content?: never }
 		| { content: { $regex: string; $options: string }; title?: never }
+		| { author: { $in: Types.ObjectId[] } }
 	)[];
-	author?: string;
+	author?: string | Types.ObjectId;
 	status?: "draft" | "published";
 	deleted?: boolean;
 };

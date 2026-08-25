@@ -7,11 +7,11 @@ import {
 	FEED_TOTAL_LIMIT,
 	POSTS_PER_PAGE,
 	POSTS_TOTAL_LIMIT,
-	SEARCH_LIMIT,
 } from "../config/post.js";
 import { InvalidPostIdError, PostNotFoundError } from "../errors/postErrors.js";
 import { requireAuth } from "../middleware/requireAuth.js";
 import { Post } from "../models/Post.js";
+import { User } from "../models/User.js";
 import type {
 	CheckSlugQuery,
 	CheckSlugResponse,
@@ -34,6 +34,20 @@ import { serializePost } from "../utils/serializePost.js";
 import { slugifyFinal } from "../utils/slugUtils.js";
 
 const router = express.Router();
+
+async function findAuthorIds(search: string): Promise<Types.ObjectId[]> {
+	const users = await User.find({
+		$or: [
+			{ name: { $regex: search, $options: "i" } },
+			{ email: { $regex: search, $options: "i" } },
+		],
+	})
+		.select("_id")
+		.lean()
+		.exec();
+
+	return users.map((user) => user._id);
+}
 
 /* ------------------------------------------------------------
      Duplicate key guard
@@ -204,37 +218,12 @@ router.get(
 					: undefined;
 
 			if (search) {
+				const authorIds = await findAuthorIds(search);
 				filter.$or = [
 					{ title: { $regex: search, $options: "i" } },
 					{ content: { $regex: search, $options: "i" } },
+					...(authorIds.length > 0 ? [{ author: { $in: authorIds } }] : []),
 				];
-			}
-
-			if (search) {
-				const allResults = (await Post.find(filter)
-					.sort({ updatedAt: -1 })
-					.limit(SEARCH_LIMIT)
-					.populate<{ author: IUserRef }>("author", "name email")
-					.lean()
-					.exec()) as PopulatedPost[];
-
-				const totalDocs = allResults.length;
-				const totalPages = Math.max(1, Math.ceil(totalDocs / POSTS_PER_PAGE));
-				const docs = allResults.slice(skip, skip + POSTS_PER_PAGE).map(serializePost);
-
-				return res.json({
-					docs,
-					pagination: {
-						totalDocs,
-						limit: POSTS_PER_PAGE,
-						page,
-						totalPages,
-						hasNextPage: page < totalPages,
-						hasPrevPage: page > 1,
-						nextPage: page < totalPages ? page + 1 : null,
-						prevPage: page > 1 ? page - 1 : null,
-					},
-				});
 			}
 
 			const [rows, totalDocsRaw] = await Promise.all([
@@ -294,38 +283,12 @@ router.get(
 			};
 
 			if (search) {
+				const authorIds = await findAuthorIds(search);
 				filter.$or = [
 					{ title: { $regex: search, $options: "i" } },
 					{ content: { $regex: search, $options: "i" } },
+					...(authorIds.length > 0 ? [{ author: { $in: authorIds } }] : []),
 				];
-			}
-
-			if (search) {
-				const allResults = (await Post.find(filter)
-					.sort({ createdAt: -1 })
-					.limit(SEARCH_LIMIT)
-					.populate<{ author: IUserRef }>("author", "name email")
-					.lean()
-					.exec()) as PopulatedPost[];
-
-				const totalDocs = allResults.length;
-				const totalPages = Math.max(1, Math.ceil(totalDocs / FEED_PER_PAGE));
-
-				const docs = allResults.slice(skip, skip + FEED_PER_PAGE).map(serializePost);
-
-				return res.json({
-					docs,
-					pagination: {
-						totalDocs,
-						limit: FEED_PER_PAGE,
-						page,
-						totalPages,
-						hasNextPage: page < totalPages,
-						hasPrevPage: page > 1,
-						nextPage: page < totalPages ? page + 1 : null,
-						prevPage: page > 1 ? page - 1 : null,
-					},
-				});
 			}
 
 			const [posts, totalDocsRaw] = await Promise.all([
@@ -527,9 +490,11 @@ router.get("/trash/list", requireAuth, async (req: Request, res: Response<PostDe
 		};
 
 		if (search) {
+			const authorIds = await findAuthorIds(search);
 			filter["$or"] = [
 				{ title: { $regex: search, $options: "i" } },
 				{ content: { $regex: search, $options: "i" } },
+				...(authorIds.length > 0 ? [{ author: { $in: authorIds } }] : []),
 			];
 		}
 

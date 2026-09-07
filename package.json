@@ -41,9 +41,9 @@
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.2.0",
-    "@types/node": "^26.3.0",
+    "@types/node": "^26.4.1",
     "bcryptjs": "^3.0.3",
-    "cloudinary": "^2.10.1",
+    "cloudinary": "^2.11.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
@@ -51,10 +51,10 @@
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "mongodb": "^7.6.0",
-    "mongoose": "^9.9.3",
-    "multer": "^2.2.0",
+    "mongoose": "^9.9.5",
+    "multer": "^2.3.0",
     "multer-storage-cloudinary": "^2.2.1",
-    "puppeteer": "^25.9.0",
+    "puppeteer": "^25.10.0",
     "rate-limiter-flexible": "^11.2.0"
   },
   "devDependencies": {
@@ -63,15 +63,15 @@
     "@types/supertest": "^7.2.1",
     "@vitest/coverage-v8": "^4.1.11",
     "@vitest/ui": "^4.1.11",
-    "eslint": "^10.9.1",
+    "eslint": "^10.10.0",
     "eslint-config-prettier": "^10.1.8",
     "jsdom": "^29.1.1",
     "mongodb-memory-server": "^11.2.0",
     "prettier": "^3.9.6",
     "supertest": "^7.2.2",
-    "tsx": "^4.23.12",
+    "tsx": "^4.23.13",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.68.0",
+    "typescript-eslint": "^8.69.0",
     "vitest": "^4.1.11",
     "vitest-coverage-merge": "^0.2.0"
   },
@@ -79,6 +79,6 @@
     "mongodb-memory-server@11.2.0": true,
     "core-js@3.50.0": true,
     "esbuild@0.28.2": true,
-    "puppeteer@25.9.0": true
+    "puppeteer@25.10.0": true
   }
 }

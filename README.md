@@ -1,20 +1,47 @@
-# 🚀 **2026 Blog API — Backend Documentation**
+# 🚀 **2026 Blog API - Backend Documentation**
 
-A modern, production-grade backend powering the **2026 Blog App**.  
-Built with **Node.js**, **Express**, **TypeScript**, **MongoDB**, and a fully tested architecture including **authentication**, **file uploads**, **PDF generation**, and **comment trees**.
+A backend for the **2026 Blog App**, built with **Node.js**, **Express**, **TypeScript**, and **MongoDB**. It provides:
 
-This backend is designed with **real-world engineering practices**:
-
-- strict TypeScript typing
-- layered architecture
-- integration-first testing
-- secure authentication
-- clean error handling
-- scalable route design
+- Cookie-based JWT authentication
+- Post and nested-comment APIs
+- Validated image uploads to Cloudinary
 - Puppeteer-based PDF export
-- image upload & validation
-- rate limiting
-- environment-driven configuration
+- Unit and integration tests
+
+---
+
+## 📑 **Table of Contents** <!-- omit from toc -->
+
+- [🚀 **2026 Blog API - Backend Documentation**](#-2026-blog-api---backend-documentation)
+  - [📦 **Tech Stack**](#-tech-stack)
+    - [**Core**](#core)
+    - [**Testing**](#testing)
+    - [**Tooling**](#tooling)
+  - [🧱 **Architecture Overview**](#-architecture-overview)
+  - [🔐 **Authentication**](#-authentication)
+  - [📝 **Posts \& Comments**](#-posts--comments)
+    - [Posts](#posts)
+    - [Comments](#comments)
+  - [🖼️ **Image Uploads**](#️-image-uploads)
+  - [📄 **PDF Export**](#-pdf-export)
+  - [🧪 **Testing Strategy**](#-testing-strategy)
+    - [Coverage](#coverage)
+  - [⚙️ **Environment Variables**](#️-environment-variables)
+  - [▶️ **Running the Backend**](#️-running-the-backend)
+    - [Install dependencies](#install-dependencies)
+    - [Install Puppeteer's browser](#install-puppeteers-browser)
+    - [Start in development](#start-in-development)
+    - [Start in production](#start-in-production)
+    - [Run tests](#run-tests)
+  - [🧩 **API Overview**](#-api-overview)
+    - [Auth routes](#auth-routes)
+    - [Post routes](#post-routes)
+    - [Comment routes](#comment-routes)
+    - [PDF](#pdf)
+    - [Upload](#upload)
+  - [🧭 **Design Principles**](#-design-principles)
+  - [📌 **Potential next steps**](#-potential-next-steps)
+  - [🧑‍💻 **Author**](#-author)
 
 ---
 
@@ -35,14 +62,13 @@ This backend is designed with **real-world engineering practices**:
 - Supertest
 - In-memory MongoDB
 - Full integration test suite
-- 80%+ integration coverage
+- Coverage reports for unit and integration suites
 
 ### **Tooling**
 
 - ESLint + Prettier
-- ts-node / ts-node-dev
+- tsx
 - dotenv
-- Husky (optional)
 
 ---
 
@@ -62,10 +88,10 @@ src/
  ├── server.ts        # App bootstrap
 ```
 
-The backend follows a **clean separation of concerns**:
+The backend separates shared concerns into route handlers, auth controllers, models, middleware, services, and utilities:
 
-- **Routes** handle HTTP
-- **Controllers** handle business logic
+- **Routes** handle HTTP and coordinate request logic
+- **Controllers** contain authentication business logic
 - **Models** handle persistence
 - **Middleware** handles cross-cutting concerns
 - **Services** handle external systems
@@ -79,12 +105,12 @@ The backend uses **JWT-based authentication** with:
 
 - Access tokens
 - Refresh tokens
-- Secure cookie support (optional)
+- HTTP-only access and refresh cookies
 - `authenticateToken` middleware
 - `req.user.userId` injected into the request
 
-Draft posts and comment actions require authentication.  
-Published posts are public.
+Post mutations and comment mutations require authentication. PDF exports are
+public for published posts and restricted to the author for drafts.
 
 ---
 
@@ -112,14 +138,12 @@ Published posts are public.
 
 - Multer-based upload
 - Image validation (size, type)
-- Local storage (can be swapped for S3)
-- Automatic cleanup on failure
+- Cloudinary storage
+- JPG, PNG, and WebP validation, with a 5 MB file-size limit
 
 ---
 
 ## 📄 **PDF Export**
-
-One of the flagship features of this backend.
 
 - Uses **Puppeteer** to render a frontend export page
 - Generates a clean A4 PDF
@@ -132,29 +156,18 @@ One of the flagship features of this backend.
 
 ## 🧪 **Testing Strategy**
 
-This backend uses a **realistic, production-grade testing strategy**:
-
-### ✔ Integration-first
-
-All routes are tested end-to-end using:
+Integration tests exercise API routes using:
 
 - in-memory MongoDB
 - Supertest
 - mocked Puppeteer
 - real authentication flow
 
-### ✔ Unit tests
+Unit tests cover utility and service logic.
 
-Pure logic (utils, serializers, token service) is fully unit tested.
+### Coverage
 
-### ✔ Coverage
-
-- **80%+ integration coverage**
-- **High coverage on critical logic**
-- **PDF route: 97% coverage**
-- **Auth middleware: 96% coverage**
-
-This is the kind of test suite used in real companies.
+Generate the unit and integration coverage reports separately with the commands in [Running the Backend](#️-running-the-backend). Coverage percentages depend on the current test run; Playwright frontend tests are maintained in the frontend project and are not part of these reports.
 
 ---
 
@@ -164,12 +177,17 @@ Create a `.env` file:
 
 ```env
 PORT=4000
-MONGO_URI=mongodb:your-mongo-uri
-JWT_SECRET=your-secret
-REFRESH_SECRET=your-refresh-secret
+MONGO_URI=mongodb://localhost:27017/2026-blog-app
+ACCESS_TOKEN_SECRET=replace-with-a-long-random-secret
+REFRESH_TOKEN_SECRET=replace-with-a-different-long-random-secret
 FRONTEND_URL=http://localhost:5173
-UPLOAD_DIR=uploads
+CORS_ORIGIN=http://localhost:5173
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-cloudinary-api-key
+CLOUDINARY_API_SECRET=your-cloudinary-api-secret
 ```
+
+`PORT` defaults to `3000`; use `4000` for the frontend's default local Vite proxy. MongoDB and the Cloudinary values are needed for their respective features. Do not commit real credentials.
 
 ---
 
@@ -179,6 +197,14 @@ UPLOAD_DIR=uploads
 
 ```bash
 npm install
+```
+
+### Install Puppeteer's browser
+
+PDF export requires the Chrome version bundled for the installed Puppeteer release:
+
+```bash
+npx puppeteer browsers install chrome
 ```
 
 ### Start in development
@@ -197,7 +223,11 @@ npm start
 ### Run tests
 
 ```bash
-npm test
+npm run test:all
+npm run test:unit
+npm run test:integration
+npm run test:coverage:unit
+npm run test:coverage:integration
 ```
 
 ---
@@ -206,33 +236,40 @@ npm test
 
 ### Auth routes
 
-- `POST /api/auth/register`
+- `POST /api/auth/signup`
 - `POST /api/auth/login`
 - `POST /api/auth/refresh`
 - `POST /api/auth/logout`
+- `GET /api/auth/verify`
+- `GET /api/auth/me` (authenticated)
 
 ### Post routes
 
 - `GET /api/posts`
+- `GET /api/posts/feed`
+- `GET /api/posts/favorites`
+- `GET /api/posts/check-slug?slug=:slug`
 - `GET /api/posts/:id`
-- `POST /api/posts`
-- `PATCH /api/posts/:id`
-- `DELETE /api/posts/:id`
-- `POST /api/posts/:id/like`
+- `POST /api/posts/new` (authenticated)
+- `PUT /api/posts/:id` (authenticated; includes soft delete)
+- `GET /api/posts/trash/list` (authenticated)
+- `POST /api/posts/:id/restore` (authenticated)
+- `POST /api/posts/:id/like` (authenticated)
 
 ### Comment routes
 
-- `GET /api/posts/:id/comments/tree`
-- `POST /api/comments`
-- `PATCH /api/comments/:id`
-- `DELETE /api/comments/:id`
-- `POST /api/comments/:id/like`
+- `GET /api/posts/:postId/comments`
+- `GET /api/posts/:postId/comments/tree`
+- `POST /api/posts/:postId/comments` (authenticated)
+- `POST /api/posts/:postId/comments/:id/like` (authenticated)
+- `PUT /api/posts/:postId/comments/:id` (authenticated)
+- `DELETE /api/posts/:postId/comments/:id` (authenticated)
 
 ### PDF
 
 - `POST /api/pdf`
-  - Public for published posts
-  - Author-only for drafts
+  - Published posts can be exported publicly
+  - Draft exports require the author's authentication
 
 ### Upload
 
@@ -254,17 +291,17 @@ This backend follows modern engineering principles:
 
 ---
 
-## 📌 **Future Improvements**
+## 📌 **Potential next steps**
 
-- Redis caching
-- Background jobs (BullMQ)
-- Webhooks for PDF export
-- S3 storage
-- Role-based permissions
+- [ ] Redis caching
+- [ ] Background jobs (BullMQ)
+- [ ] Webhooks for PDF export
+- [ ] S3 storage
+- [ ] Role-based permissions
 
 ---
 
 ## 🧑‍💻 **Author**
 
-Backend developed by **Dominique**  
+Backend developed by **Catevika**  
 2026 Blog App — Full-stack project (React + Express + MongoDB)

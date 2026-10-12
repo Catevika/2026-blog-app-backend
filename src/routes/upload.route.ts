@@ -13,18 +13,14 @@ router.post("/image", uploadImage, async (req: Request, res: Response) => {
 			return res.status(400).json({ success: false, message: "No file uploaded" });
 		}
 
-		const legacyFile = file as any;
-		const permanentCloudUrl = legacyFile.secure_url || legacyFile.url;
-		const filename = legacyFile.public_id || "image";
+		const permanentCloudUrl = file.path;
+		const filename = file.filename;
 
-		if (!permanentCloudUrl) {
-			console.error(
-				"❌ Multer-Cloudinary version mismatch: URL keys not found on file object:",
-				file,
-			);
+		if (!permanentCloudUrl || !filename) {
+			console.error("Cloudinary upload metadata is missing from the Multer file object:", file);
 			return res.status(500).json({
 				success: false,
-				message: "Image stored on cloud, but Express failed to retrieve the public URL.",
+				message: "Image was uploaded, but its Cloudinary metadata could not be retrieved.",
 			});
 		}
 

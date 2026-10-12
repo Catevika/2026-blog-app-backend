@@ -1,33 +1,71 @@
 import { v2 as cloudinary } from "cloudinary";
-import pkg from "multer-storage-cloudinary";
 import multer, { MulterError } from "multer";
 import path from "node:path";
 import { ALLOWED_EXTENSIONS, MAX_FILE_SIZE } from "../config/upload.js";
 
-// Safe cross-boundary fallback extractor for old module structures
-const CloudinaryStorage = (pkg as any).CloudinaryStorage || pkg;
-
-// Initialize Cloudinary credentials safely using your local environment variables
 cloudinary.config({
 	cloud_name: process.env["CLOUDINARY_CLOUD_NAME"],
 	api_key: process.env["CLOUDINARY_API_KEY"],
 	api_secret: process.env["CLOUDINARY_API_SECRET"],
 });
 
-const storage = new CloudinaryStorage({
-	cloudinary: {
-		v2: cloudinary,
-		uploader: cloudinary.uploader, // Fallback chain helper
-	} as any,
-	params: {
-		folder: "blog_uploads",
-		allowedFormats: ["jpg", "jpeg", "png", "webp"],
-		transformation: [{ width: 1200, crop: "limit" }],
-	},
-});
+const storage: multer.StorageEngine = {
+	_handleFile(_req, file, callback) {
+		const uploadStream = cloudinary.uploader.upload_stream(
+			{
+				folder: "blog_uploads",
+				allowed_formats: ["jpg", "jpeg", "png", "webp"],
+				transformation: [{ width: 1200, crop: "limit" }],
+			},
+			(error, result) => {
+				if (error) {
+					callback(error);
+					return;
+				}
 
-// Security validation layer utilizing your updated config variables
-const fileFilter = (_req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+				if (!result) {
+					callback(new Error("Cloudinary returned no upload result"));
+					return;
+				}
+
+				callback(null, {
+					filename: result.public_id,
+					path: result.secure_url,
+					size: result.bytes,
+				});
+			},
+		);
+
+		file.stream.pipe(uploadStream);
+	},
+
+	_removeFile(_req, file, callback) {
+		if (!file.filename) {
+			callback(new Error("Cannot remove Cloudinary upload without a public ID"));
+			return;
+		}
+
+		void cloudinary.uploader
+			.destroy(file.filename, { invalidate: true, resource_type: "image" })
+			.then((result) => {
+				if (result.result !== "ok" && result.result !== "not found") {
+					callback(new Error(`Cloudinary failed to remove upload: ${result.result}`));
+					return;
+				}
+
+				callback(null);
+			})
+			.catch((error: unknown) => {
+				callback(error instanceof Error ? error : new Error(String(error)));
+			});
+	},
+};
+
+const fileFilter = (
+	_req: Express.Request,
+	file: Express.Multer.File,
+	cb: multer.FileFilterCallback,
+) => {
 	if (!/^image\/(jpe?g|png|webp)$/i.test(file.mimetype)) {
 		const err = new MulterError("LIMIT_UNEXPECTED_FILE");
 		err.message = "Only JPG, PNG, and WebP are allowed";

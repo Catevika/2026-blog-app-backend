@@ -189,6 +189,10 @@ CLOUDINARY_API_SECRET=your-cloudinary-api-secret
 
 `PORT` defaults to `3000`; use `4000` for the frontend's default local Vite proxy. MongoDB and the Cloudinary values are needed for their respective features. Do not commit real credentials.
 
+For local development, `npm run dev` loads `.env.dev` when it exists, before
+falling back to values in `.env`. Set `FRONTEND_URL=http://localhost:5173` there
+so Puppeteer renders the local Vite export page instead of the deployed frontend.
+
 ---
 
 ## ▶️ **Running the Backend**
@@ -206,6 +210,9 @@ PDF export requires the Chrome version bundled for the installed Puppeteer relea
 ```bash
 npx puppeteer browsers install chrome
 ```
+
+Run this once after installing or updating backend dependencies if the browser
+is not already installed.
 
 ### Start in development
 

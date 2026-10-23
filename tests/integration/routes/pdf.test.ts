@@ -1,5 +1,6 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Types } from "mongoose";
+import { TimeoutError } from "puppeteer";
 import type { Browser, Page } from "puppeteer";
 import { Post } from "../../../src/models/Post.js";
 import { User } from "../../../src/models/User.js";
@@ -165,6 +166,13 @@ describe("PDF route integration (in-memory DB, puppeteer mocked)", () => {
 			.expect("Content-Type", /application\/pdf/);
 
 		expect(res.body).toEqual(Buffer.from("int-pdf"));
+		expect(raw.page.goto).toHaveBeenCalledWith(
+			expect.any(String),
+			expect.objectContaining({ waitUntil: "domcontentloaded" }),
+		);
+		expect(raw.page.waitForSelector).toHaveBeenCalledWith("#export-ready", {
+			timeout: 30000,
+		});
 	});
 
 	// ---------------------------------------------------------
@@ -228,7 +236,7 @@ describe("PDF route integration (in-memory DB, puppeteer mocked)", () => {
 		});
 
 		const { raw } = createMockPuppeteer();
-		raw.page.goto.mockRejectedValue(new Error("timeout exceeded"));
+		raw.page.goto.mockRejectedValue(new TimeoutError("timeout exceeded"));
 
 		vi.spyOn(browserService, "createBrowser").mockResolvedValue({
 			newPage: vi.fn().mockResolvedValue(raw.page as unknown as Page),
@@ -237,6 +245,6 @@ describe("PDF route integration (in-memory DB, puppeteer mocked)", () => {
 
 		const res = await agent.post("/api/pdf").send({ postId: postId.toString() }).expect(504);
 
-		expect(res.body.message).toBe("PDF rendering timed out - page too complex");
+		expect(res.body.message).toBe("PDF export page did not become ready before the timeout");
 	});
 });

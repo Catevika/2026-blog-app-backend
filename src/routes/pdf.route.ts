@@ -1,7 +1,7 @@
 import type { Request } from "express";
 import { Router } from "express";
 import { Types } from "mongoose";
-import type { Browser } from "puppeteer";
+import { TimeoutError, type Browser } from "puppeteer";
 import { Post } from "../models/Post.js";
 import * as browserService from "../services/browserService.js";
 import type { PdfRequestBody } from "../types/index.js";
@@ -71,18 +71,11 @@ router.post("/", authenticateToken, async (req, res) => {
 
 		// Load your frontend export page
 		await page.goto(`${frontendBaseUrl}/export/${postId}`, {
-			// Changed from networkidle0 to networkidle2 to accommodate external
-			// Cloudinary image streaming connections without timing out prematurely
-			waitUntil: "networkidle2",
-			timeout: 15000,
+			waitUntil: "domcontentloaded",
+			timeout: 30000,
 		});
 
-		// Ensure frontend loaded
-		const ok = (await page.$("#export-ready")) !== null;
-
-		if (!ok) {
-			throw new Error("frontend-not-ready");
-		}
+		await page.waitForSelector("#export-ready", { timeout: 30000 });
 
 		const pdfBuffer = await page.pdf({
 			format: "A4",
@@ -95,10 +88,9 @@ router.post("/", authenticateToken, async (req, res) => {
 		return res.send(pdfBuffer);
 	} catch (err: unknown) {
 		// Safe message extraction
-		const msg = err instanceof Error ? err.message : String(err);
-		if (msg.includes("timeout")) {
+		if (err instanceof TimeoutError) {
 			return res.status(504).json({
-				message: "PDF rendering timed out - page too complex",
+				message: "PDF export page did not become ready before the timeout",
 			});
 		}
 
